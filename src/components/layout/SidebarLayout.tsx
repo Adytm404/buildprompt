@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { Menu } from 'lucide-react';
 import { AppLogo } from '@/components/layout/AppLogo';
 import { AppSidebar } from '@/components/layout/AppSidebar';
+import { DitherWave } from '@/components/landing/DitherWave';
 import { Drawer } from '@/components/ui/Drawer';
 import type { NavItem } from '@/data/navigation';
 import { cn } from '@/lib/utils';
@@ -46,8 +47,22 @@ export function SidebarLayout({
         </div>
       </div>
 
-      {/* Main Content Area with Dark Aurora Canvas */}
-      <div className="flex flex-1 flex-col min-w-0 aurora-bg-dark">
+      {/* Main Content Area with Dark Studio Canvas */}
+      <div className="relative flex flex-1 flex-col min-w-0 aurora-bg-dark overflow-x-hidden">
+        {/* Subtle Animated Dither Wave Ambient Accent across /projects and /projects/* */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-72 overflow-hidden opacity-25 z-0">
+          <DitherWave
+            pixelSize={6}
+            speed={0.4}
+            primaryColor="#7C3AED"
+            secondaryColor="#3B0764"
+            waveBaseHeight={0.4}
+            amplitude={32}
+            ditherDepth={65}
+            interactive={false}
+          />
+        </div>
+
         {/* Mobile Top Bar */}
         <header className="sticky top-0 z-30 flex items-center justify-between border-b border-white/10 bg-[#0B0C10]/90 px-4 py-3 backdrop-blur-md lg:hidden">
           <div className="flex items-center gap-2.5 min-w-0">

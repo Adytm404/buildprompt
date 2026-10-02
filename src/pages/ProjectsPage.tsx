@@ -231,10 +231,10 @@ export function ProjectsPage() {
             transition={{ duration: 0.5, delay: 0.08 }}
             className="max-w-xl mx-auto"
           >
-            <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-white leading-tight">
+            <h1 className="text-3xl sm:text-5xl font-rounded font-bold tracking-tight text-white leading-tight">
               Apa yang ingin Anda rancang?
             </h1>
-            <p className="mt-3 text-sm sm:text-base text-white/50 leading-relaxed">
+            <p className="mt-3 text-sm sm:text-base font-sans text-white/50 leading-relaxed">
               Tuliskan ide aplikasi atau fitur baru. AI kami akan merancang PRD teknisnya untuk Anda.
             </p>
           </motion.div>

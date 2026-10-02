@@ -44,7 +44,7 @@ export function HomePage() {
     <div className="bg-[#08090C] text-white">
       {/* SECTION 1: HERO (100vh / Full Viewport dengan latar animasi gelombang dithering) */}
       <section className="relative min-h-screen flex flex-col justify-between bg-[#0A0512] overflow-hidden">
-        {/* Animated Procedural Dither Wave Canvas Background */}
+        {/* Animated Procedural Dither Wave Canvas Background (Bertindak sebagai pembatas langsung ke seksi berikutnya) */}
         <div className="absolute inset-0 z-0">
           <DitherWave
             pixelSize={5}
@@ -52,16 +52,15 @@ export function HomePage() {
             primaryColor="#6D28D9"
             secondaryColor="#3B0764"
             backgroundColor="#0A0512"
-            waveBaseHeight={0.62}
+            waveBaseHeight={0.72}
             amplitude={55}
-            ditherDepth={95}
+            ditherDepth={90}
             interactive={true}
           />
         </div>
 
-        {/* Ambient Top & Bottom Gradients for maximum clarity */}
+        {/* Ambient Top Gradient untuk kenyamanan baca Navbar & Judul */}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-44 z-0 bg-gradient-to-b from-[#0A0512] via-[#0A0512]/60 to-transparent" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-36 z-0 bg-gradient-to-t from-[#08090C] via-[#08090C]/80 to-transparent" />
 
         <Navbar />
 
@@ -74,7 +73,7 @@ export function HomePage() {
               transition={{ duration: 0.5 }}
               className="flex justify-center mb-6"
             >
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] py-1 px-3.5 text-xs text-white/80 shadow-sm backdrop-blur-md">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] py-1 px-3.5 text-xs font-compact font-medium text-white/80 shadow-sm backdrop-blur-md">
                 <span className="rounded-full bg-gradient-to-r from-pink-500 to-indigo-500 px-2 py-0.5 text-[9px] font-bold text-white tracking-wide">
                   BARU
                 </span>
@@ -83,16 +82,16 @@ export function HomePage() {
               </div>
             </motion.div>
 
-            {/* Simple, Punchy Hero Title & Subtitle */}
+            {/* Simple, Punchy Hero Title & Subtitle with SF Pro Rounded */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             >
-              <h1 className="text-balance text-[2.5rem] font-bold leading-[1.1] tracking-tight text-white sm:text-5xl md:text-[3.75rem]">
+              <h1 className="text-balance text-[2.5rem] font-rounded font-bold leading-[1.12] tracking-tight text-white sm:text-5xl md:text-[3.75rem]">
                 Rancang aplikasi dari satu ide
               </h1>
-              <p className="mx-auto mt-4 max-w-lg text-[15px] sm:text-[17px] leading-relaxed text-white/60">
+              <p className="mx-auto mt-4 max-w-lg text-[15px] sm:text-[17px] font-sans leading-relaxed text-white/60">
                 Ceritakan ide aplikasi Anda dengan bahasa sehari-hari. Kami bantu menyusun PRD teknis dan prompt coding siap pakai.
               </p>
             </motion.div>
@@ -143,25 +142,20 @@ export function HomePage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="mt-10 flex items-center justify-center gap-1.5 text-center text-xs text-white/35"
+              className="mt-10 flex items-center justify-center gap-1.5 text-center text-xs text-white/40"
             >
               <Sparkles size={13} className="text-pink-400" />
               Tanpa perlu memahami pemrograman, basis data, atau istilah teknis.
             </motion.p>
           </div>
         </div>
-
-        {/* Bottom edge indicator */}
-        <div className="relative z-10 pb-6 text-center text-xs text-white/30">
-          <span>Gulir ke bawah untuk melihat fitur &amp; alat bantu AI</span>
-        </div>
       </section>
 
-      {/* SECTION 2: BACKGROUND NORMAL (Solid clean dark, bebas dari blur awan aurora) */}
-      <section className="relative z-20 border-t border-white/10 bg-[#08090C] py-20 px-4 sm:px-8">
+      {/* SECTION 2: BACKGROUND NORMAL (Solid clean dark, transisi langsung dari dither wave) */}
+      <section className="relative z-20 bg-[#08090C] py-20 px-4 sm:px-8">
         {/* Infinite Moving Marquee from right to left */}
         <div className="max-w-6xl mx-auto">
-          <p className="text-center text-[11px] font-semibold uppercase tracking-widest text-white/40 mb-6">
+          <p className="text-center text-[11px] font-compact font-semibold uppercase tracking-widest text-white/40 mb-6">
             Kompatibel dengan agen koding &amp; IDE AI pilihan Anda
           </p>
 
