@@ -151,25 +151,31 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* SECTION 2: BACKGROUND NORMAL (Solid clean dark, transisi langsung dari dither wave) */}
-      <section className="relative z-20 bg-[#08090C] py-20 px-4 sm:px-8">
-        {/* Infinite Moving Marquee from right to left */}
-        <div className="max-w-6xl mx-auto">
-          <p className="text-center text-[11px] font-compact font-semibold uppercase tracking-widest text-white/40 mb-6">
-            Kompatibel dengan agen koding &amp; IDE AI pilihan Anda
-          </p>
+      {/* SECTION 2: DEEP VIOLET OBSIDIAN (Harmonis dengan hero wave dan footer dither banner) */}
+      <section className="relative z-20 bg-[#0B0616] py-16 sm:py-24 px-4 sm:px-8 overflow-hidden text-white">
+        {/* Subtle Atmospheric Violet Glow in Section 2 */}
+        <div className="pointer-events-none absolute top-12 left-1/2 -translate-x-1/2 h-[550px] w-[850px] rounded-full bg-purple-900/15 blur-[140px] z-0" />
+        <div className="pointer-events-none absolute bottom-1/4 right-0 h-[400px] w-[500px] rounded-full bg-indigo-900/10 blur-[130px] z-0" />
 
-          <AIToolsMarquee />
-        </div>
+        <div className="relative z-10">
+          {/* Infinite Moving Marquee from right to left */}
+          <div className="max-w-6xl mx-auto">
+            <p className="text-center text-[11px] font-compact font-semibold uppercase tracking-widest text-purple-300/50 mb-6">
+              Kompatibel dengan agen koding &amp; IDE AI pilihan Anda
+            </p>
 
-        {/* Signature Element: Interactive Metamorfosis Inspector */}
-        <div className="mt-20">
-          <SpecTransformationInspector />
-        </div>
+            <AIToolsMarquee />
+          </div>
 
-        {/* Guided Workflow Breakdown: 3 Tangible Steps + Bottom Call-to-action */}
-        <div className="mt-8">
-          <WorkflowSteps />
+          {/* Signature Element: Interactive Metamorfosis Inspector */}
+          <div className="mt-16 sm:mt-24">
+            <SpecTransformationInspector />
+          </div>
+
+          {/* Guided Workflow Breakdown: 3 Tangible Steps + Dither Banner */}
+          <div className="mt-8 sm:mt-12">
+            <WorkflowSteps />
+          </div>
         </div>
       </section>
     </div>

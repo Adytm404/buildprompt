@@ -143,8 +143,8 @@ export function AIToolsMarquee() {
   return (
     <div className="relative w-full overflow-hidden py-4 select-none">
       {/* Edge gradient masks for smooth fade in/out */}
-      <div className="pointer-events-none absolute left-0 top-0 bottom-0 z-10 w-24 sm:w-40 bg-gradient-to-r from-[#08090C] to-transparent" />
-      <div className="pointer-events-none absolute right-0 top-0 bottom-0 z-10 w-24 sm:w-40 bg-gradient-to-l from-[#08090C] to-transparent" />
+      <div className="pointer-events-none absolute left-0 top-0 bottom-0 z-10 w-24 sm:w-40 bg-gradient-to-r from-[#0B0616] to-transparent" />
+      <div className="pointer-events-none absolute right-0 top-0 bottom-0 z-10 w-24 sm:w-40 bg-gradient-to-l from-[#0B0616] to-transparent" />
 
       {/* Infinite scrolling ribbon */}
       <div className="animate-marquee flex items-center gap-4 sm:gap-6">
@@ -153,9 +153,9 @@ export function AIToolsMarquee() {
           return (
             <div
               key={`${tool.id}-${index}`}
-              className="flex shrink-0 items-center gap-2.5 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 text-xs font-semibold text-white/70 backdrop-blur-md transition-all duration-200 hover:border-white/25 hover:bg-white/[0.08] hover:text-white"
+              className="flex shrink-0 items-center gap-2.5 rounded-full border border-purple-500/20 bg-purple-500/[0.04] px-4 py-2 text-xs font-semibold text-purple-200/80 backdrop-blur-md transition-all duration-200 hover:border-purple-400/40 hover:bg-purple-500/12 hover:text-white"
             >
-              <span className="text-white/80 shrink-0">
+              <span className="text-purple-300 shrink-0">
                 <SvgIcon />
               </span>
               <span className="whitespace-nowrap tracking-wide">{tool.name}</span>
