@@ -38,8 +38,8 @@ export function PricingCard({ tier, currentPlan, onSelect }: PricingCardProps) {
     >
       {/* Top Floating Badge */}
       {tier.badge ? (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20">
-          <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 px-3 py-1 text-[10px] font-bold font-compact tracking-wider uppercase text-white shadow-lg">
+        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-20">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 px-3.5 py-1 text-[10px] font-bold font-compact tracking-wider uppercase text-white shadow-lg border border-purple-400/40">
             <Sparkles size={11} />
             <span>{tier.badge}</span>
           </span>

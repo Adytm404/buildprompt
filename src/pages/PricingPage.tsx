@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeft, CheckCircle2, HelpCircle, Shield, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -11,79 +12,78 @@ export function PricingPage() {
   const [selectedTier, setSelectedTier] = useState<PricingTier | null>(null);
   const [period, setPeriod] = useState<'monthly' | 'quarterly'>('monthly');
 
-  const tiers: PricingTier[] = [
-    {
-      id: 'free',
-      name: 'Gratis',
-      tagline: 'Untuk validasi ide awal & eksplorasi konsep aplikasi.',
-      price: 'Rp0',
-      period: '/ selamanya',
-      priceNote: 'Bebas biaya tanpa kartu kredit',
-      quotaLabel: '1x PRD / hari (Maks. 5x / bulan)',
-      userBenefit: '1 Akun pengembang',
-      speedBenefit: 'Kecepatan standar',
-      ctaText: 'Gunakan Gratis',
-      features: [
-        '1 generasi PRD per hari',
-        'Maksimal 5 PRD per bulan',
-        'Wawancara AI adaptif (DeepSeek v4.1)',
-        'Format Markdown terstruktur & lengkap',
-        'Skema relasi SQLite & REST API otomatis',
-        'Salin dan unduh berkas .md instan',
-        'Kompatibel dengan 18+ AI coding agent',
-      ],
-    },
-    {
-      id: 'pro_monthly',
-      name: 'Pro Bulanan',
-      tagline: 'Untuk pengembang, solo founder, dan builder produk aktif.',
-      price: 'Rp100.000',
-      period: '/ bulan',
-      priceNote: 'Ditagih setiap bulan, batalkan kapan saja',
-      quotaLabel: 'Unlimited PRD (Tanpa Batas)',
-      userBenefit: 'Akun personal prioritas',
-      speedBenefit: 'Kecepatan tinggi (High Speed AI)',
-      ctaText: 'Pilih Paket Bulanan',
-      features: [
-        'Semua fitur di paket Gratis',
-        'Generasi PRD tanpa batas (Unlimited)',
-        'Tanpa batasan harian maupun bulanan',
-        'Prioritas antrean AI berkecepatan tinggi',
-        'Scaffold codebase Next.js 15 + SQLite',
-        'Kustomisasi target (Cursor, Claude Code, dll.)',
-        'Bebas edit kebutuhan & buat ulang kapan saja',
-        'Dukungan teknis prioritas',
-      ],
-    },
-    {
-      id: 'pro_quarterly',
-      name: 'Pro 3 Bulan',
-      tagline: 'Pilihan paling hemat untuk membangun MVP hingga siap rilis.',
-      price: 'Rp200.000',
-      period: '/ 3 bulan',
-      priceNote: 'Setara ~Rp66.600/bln • Hemat Rp100.000 (33% OFF)',
-      quotaLabel: 'Unlimited PRD (90 Hari Penuh)',
-      badge: 'HEMAT 33% • REKOMENDASI',
-      isPopular: true,
-      userBenefit: 'Akun personal prioritas',
-      speedBenefit: 'Akses prioritas 90 hari penuh',
-      ctaText: 'Pilih Paket 3 Bulan',
-      features: [
-        'Semua spesifikasi Paket Pro Bulanan',
-        'Akses penuh 3 bulan (90 hari kalender)',
-        'Generasi PRD tanpa batas sepuasnya',
-        'Hemat Rp100.000 dibanding bayar bulanan',
-        'Lencana eksklusif Pro Member di dashboard',
-        'Akses awal ke pembaruan model AI baru',
-        'Konsultasi struktur & arsitektur produk',
-        'Garansi harga langganan terkunci',
-      ],
-    },
-  ];
+  // Paket Gratis (Selalu tampil di sisi kiri sebagai opsi dasar)
+  const freeTier: PricingTier = {
+    id: 'free',
+    name: 'Gratis',
+    tagline: 'Eksplorasi ide dan validasi konsep aplikasi awal.',
+    price: 'Rp0',
+    period: '/ selamanya',
+    priceNote: 'Bebas biaya tanpa kartu kredit',
+    quotaLabel: '1x PRD / hari (Maks. 5x / bulan)',
+    userBenefit: '1 Akun pengembang',
+    speedBenefit: 'Kecepatan standar',
+    ctaText: 'Gunakan Gratis',
+    features: [
+      '1 pembuatan PRD per hari (maks. 5x / bulan)',
+      'Wawancara AI adaptif (DeepSeek v4.1 Flash)',
+      'Skema basis data SQLite & rincian REST API',
+      'Salin dan unduh dokumen PRD format Markdown (.md)',
+      'Format prompt terstandarisasi untuk coding agent',
+    ],
+  };
+
+  // Paket Berbayar Bulanan (Tampil saat toggle "Bulanan" aktif)
+  const proMonthlyTier: PricingTier = {
+    id: 'pro_monthly',
+    name: 'Pro Bulanan',
+    tagline: 'Untuk developer & builder produk yang butuh generasi intensif.',
+    price: 'Rp100.000',
+    period: '/ bulan',
+    priceNote: 'Ditagih per bulan, batalkan kapan saja',
+    quotaLabel: 'Unlimited PRD (Tanpa Batas)',
+    isPopular: true,
+    userBenefit: 'Akun personal prioritas',
+    speedBenefit: 'Kecepatan tinggi (High Speed AI)',
+    ctaText: 'Pilih Paket Bulanan',
+    features: [
+      'Semua fitur di paket Gratis',
+      'Generasi PRD tanpa batas (Unlimited sepuasnya)',
+      'Bebas edit kebutuhan & buat ulang (Regenerate) sepuasnya',
+      'Kustomisasi target lengkap (Cursor, Claude Code, Codex, dll.)',
+      'Simpan riwayat proyek tanpa batas di Studio AI',
+    ],
+  };
+
+  // Paket Berbayar 3 Bulan (Tampil saat toggle "Paket 3 Bulan" aktif)
+  const proQuarterlyTier: PricingTier = {
+    id: 'pro_quarterly',
+    name: 'Pro 3 Bulan',
+    tagline: 'Pilihan paling hemat untuk membangun produk dari ide sampai rilis.',
+    price: 'Rp200.000',
+    period: '/ 3 bulan',
+    priceNote: 'Setara ~Rp66.600/bln • Hemat Rp100.000 (33% OFF)',
+    quotaLabel: 'Unlimited PRD (90 Hari Penuh)',
+    badge: 'HEMAT RP100.000 • REKOMENDASI',
+    isPopular: true,
+    userBenefit: 'Akun personal prioritas',
+    speedBenefit: 'Akses prioritas 90 hari penuh',
+    ctaText: 'Pilih Paket 3 Bulan',
+    features: [
+      'Spesifikasi identik dengan Paket Pro Bulanan',
+      'Generasi PRD tanpa batas selama 90 hari penuh',
+      'Lebih hemat Rp100.000 dibanding bayar bulanan',
+      'Bebas edit kebutuhan & buat ulang (Regenerate) sepuasnya',
+      'Pembaruan templat arsitektur & model AI baru',
+    ],
+  };
+
+  // Sesuai permintaan: Toggle memfilter kartu berbayar secara dinamis
+  const activePaidTier = period === 'monthly' ? proMonthlyTier : proQuarterlyTier;
 
   return (
     <SidebarLayout activeId="pricing" title="Paket Langganan">
-      <div className="mx-auto w-full max-w-6xl px-4 sm:px-8 py-8 sm:py-12 text-white">
+      <div className="mx-auto w-full max-w-5xl px-4 sm:px-8 py-8 sm:py-12 text-white">
         {/* Navigation Breadcrumb */}
         <div className="mb-6 flex items-center justify-between">
           <Link
@@ -104,7 +104,7 @@ export function PricingPage() {
           )}
         </div>
 
-        {/* Page Hero Header (Image 1 style) */}
+        {/* Page Hero Header */}
         <div className="text-center max-w-2xl mx-auto mb-10">
           <div className="inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-3.5 py-1 text-xs font-compact font-semibold text-purple-300 mb-3 tracking-wide">
             <Sparkles size={12} className="text-purple-400" />
@@ -118,7 +118,7 @@ export function PricingPage() {
             Mulai gratis dengan kuota harian atau buka generasi PRD tanpa batas untuk akselerasi koding AI Anda.
           </p>
 
-          {/* Period Toggle Pill (Image 1 style: Monthly vs Yearly / 3 Months) */}
+          {/* Period Toggle Pill: Bulanan vs 3 Bulan */}
           <div className="mt-7 inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/[0.04] p-1 text-xs">
             <button
               type="button"
@@ -148,20 +148,36 @@ export function PricingPage() {
           </div>
         </div>
 
-        {/* 3 Pricing Cards Grid (Matching Image 1) */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-          {tiers.map((tier) => (
-            <PricingCard
-              key={tier.id}
-              tier={tier}
-              currentPlan={user?.plan}
-              onSelect={(t) => setSelectedTier(t)}
-            />
-          ))}
+        {/* Dynamic 2 Cards Grid: Rapi, Lega, Sesuai Toggle */}
+        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-7 sm:gap-8 items-stretch">
+          {/* Card 1: Gratis */}
+          <PricingCard
+            tier={freeTier}
+            currentPlan={user?.plan}
+            onSelect={(t) => setSelectedTier(t)}
+          />
+
+          {/* Card 2: Pro (Berganti dinamis antara Bulanan & 3 Bulan sesuai toggle) */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activePaidTier.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+              className="h-full flex flex-col"
+            >
+              <PricingCard
+                tier={activePaidTier}
+                currentPlan={user?.plan}
+                onSelect={(t) => setSelectedTier(t)}
+              />
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         {/* Value Assurance Row */}
-        <div className="mt-14 rounded-2xl border border-white/10 bg-white/[0.02] p-5 sm:p-6 backdrop-blur-md">
+        <div className="mt-14 max-w-4xl mx-auto rounded-2xl border border-white/10 bg-white/[0.02] p-5 sm:p-6 backdrop-blur-md">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center sm:text-left">
             <div className="flex items-start gap-3">
               <CheckCircle2 size={18} className="text-purple-400 shrink-0 mt-0.5" />
