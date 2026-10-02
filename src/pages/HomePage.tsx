@@ -152,14 +152,14 @@ export function HomePage() {
       </section>
 
       {/* SECTION 2: DEEP VIOLET OBSIDIAN (Harmonis dengan hero wave dan footer dither banner) */}
-      <section className="relative z-20 bg-[#0B0616] py-16 sm:py-24 px-4 sm:px-8 overflow-hidden text-white">
+      <section className="relative z-20 bg-[#0B0616] py-16 sm:py-24 overflow-hidden text-white">
         {/* Subtle Atmospheric Violet Glow in Section 2 */}
         <div className="pointer-events-none absolute top-12 left-1/2 -translate-x-1/2 h-[550px] w-[850px] rounded-full bg-purple-900/15 blur-[140px] z-0" />
         <div className="pointer-events-none absolute bottom-1/4 right-0 h-[400px] w-[500px] rounded-full bg-indigo-900/10 blur-[130px] z-0" />
 
-        <div className="relative z-10">
+        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 sm:space-y-20">
           {/* Infinite Moving Marquee from right to left */}
-          <div className="max-w-6xl mx-auto">
+          <div className="w-full">
             <p className="text-center text-[11px] font-compact font-semibold uppercase tracking-widest text-purple-300/50 mb-6">
               Kompatibel dengan agen koding &amp; IDE AI pilihan Anda
             </p>
@@ -167,13 +167,13 @@ export function HomePage() {
             <AIToolsMarquee />
           </div>
 
-          {/* 4 Animated Bento Feature Cards (Persis Rujukan Gambar 1 & 2) */}
-          <div className="mt-14 sm:mt-20">
+          {/* 4 Animated Bento Feature Cards (Persis Alur Nyata buildprompt) */}
+          <div className="w-full">
             <AnimatedFeatureBento />
           </div>
 
           {/* 1:1 Animated Dither Wave Banner matching user's Image 1 */}
-          <div className="max-w-5xl mx-auto mt-2 sm:mt-6 pb-12">
+          <div className="w-full pb-8 sm:pb-12">
             <DitherBanner
               title="Buat proyek pertamamu"
               buttonText="Buat proyek pertama"

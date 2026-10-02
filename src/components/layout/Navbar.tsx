@@ -5,7 +5,7 @@ import { AppLogo } from '@/components/layout/AppLogo';
 export function Navbar() {
   return (
     <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-[#0A0B0F]/80 border-b border-white/10 text-white">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 sm:px-8">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Left: Lovable-style Logo */}
         <div className="flex items-center gap-8">
           <AppLogo dark />
