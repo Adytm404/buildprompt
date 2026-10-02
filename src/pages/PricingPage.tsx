@@ -10,7 +10,7 @@ import { useAuth } from '@/context/AuthContext';
 export function PricingPage() {
   const { user } = useAuth();
   const [selectedTier, setSelectedTier] = useState<PricingTier | null>(null);
-  const [period, setPeriod] = useState<'monthly' | 'quarterly'>('monthly');
+  const [period, setPeriod] = useState<'monthly' | 'quarterly'>('quarterly');
 
   // Paket Gratis (Selalu tampil di sisi kiri sebagai opsi dasar)
   const freeTier: PricingTier = {
