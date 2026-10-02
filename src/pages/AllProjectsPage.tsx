@@ -248,7 +248,7 @@ export function AllProjectsPage() {
         {/* Top Header Row (Gambar 1) */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">Semua Proyek</h1>
+            <h1 className="text-2xl sm:text-3xl font-rounded font-bold tracking-tight text-white">Semua Proyek</h1>
           </div>
 
           <div className="flex items-center gap-2.5">

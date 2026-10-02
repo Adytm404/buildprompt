@@ -39,8 +39,8 @@ export function ProjectHeader({
       <div className="mt-4 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-3">
-            {/* Heading in bold crisp white */}
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">{projectName}</h1>
+            {/* Heading in bold crisp white with SF Pro Rounded */}
+            <h1 className="text-3xl sm:text-4xl font-rounded font-bold tracking-tight text-white">{projectName}</h1>
             <span className="rounded-full border border-pink-500/30 bg-pink-500/10 px-2.5 py-0.5 text-xs font-semibold text-pink-300">
               {badge}
             </span>

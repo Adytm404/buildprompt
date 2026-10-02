@@ -122,7 +122,7 @@ export function PromptPage() {
               <span className="text-white/80">{project.name}</span>
             </nav>
             <div className="mt-3 flex items-center gap-3">
-              <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              <h1 className="text-3xl font-rounded font-bold tracking-tight text-white sm:text-4xl">
                 Prompt PRD Anda Siap
               </h1>
               <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-pink-500/30 bg-pink-500/10 px-2.5 py-0.5 text-xs font-semibold text-pink-300">
