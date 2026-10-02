@@ -474,12 +474,12 @@ export function defaultFeatureIds(kind: IdeaKind): string[] {
 export function deploymentLabel(value?: string): string {
   switch (value) {
     case 'shared':
-      return 'Shared Hosting / cPanel';
+      return 'Shared Hosting / cPanel (Node.js)';
     case 'vps':
       return 'VPS';
     case 'vercel':
       return 'Vercel / Cloud Platform';
     default:
-      return 'Rekomendasi AI (Shared Hosting / cPanel)';
+      return 'Vercel / Cloud Platform (Rekomendasi AI)';
   }
 }

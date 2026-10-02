@@ -179,41 +179,50 @@ function buildStack(project: Project): StackItem[] {
 
   if (platform === 'mobile') {
     return [
-      { label: 'Antarmuka', value: 'React Native', icon: 'Atom' },
-      { label: 'Sisi Server', value: 'Laravel', icon: 'Server' },
-      { label: 'Basis Data', value: 'MySQL', icon: 'Database' },
+      { label: 'Antarmuka', value: 'React Native (Expo)', icon: 'Atom' },
+      { label: 'Sisi Server & API', value: 'Next.js (App Router)', icon: 'Server' },
+      { label: 'Basis Data', value: 'SQLite', icon: 'Database' },
       { label: 'Distribusi', value: 'Google Play / App Store', icon: 'Cloud' },
     ];
   }
   if (platform === 'desktop') {
     return [
-      { label: 'Antarmuka', value: 'React + Electron', icon: 'Atom' },
-      { label: 'Sisi Server', value: 'Laravel', icon: 'Server' },
-      { label: 'Basis Data', value: 'MySQL', icon: 'Database' },
+      { label: 'Antarmuka', value: 'Next.js + Electron / Tauri', icon: 'Atom' },
+      { label: 'Sisi Server', value: 'Next.js API Routes', icon: 'Server' },
+      { label: 'Basis Data', value: 'SQLite', icon: 'Database' },
       { label: 'Distribusi', value: 'Installer (Windows/macOS)', icon: 'Cloud' },
     ];
   }
   if (deployment === 'vercel') {
     return [
-      { label: 'Antarmuka', value: 'React + Vite', icon: 'Atom' },
-      { label: 'Sisi Server', value: 'Node.js (Express)', icon: 'Server' },
-      { label: 'Basis Data', value: 'PostgreSQL', icon: 'Database' },
+      { label: 'Framework', value: 'Next.js (App Router, TypeScript)', icon: 'Atom' },
+      { label: 'Styling', value: 'Tailwind CSS', icon: 'Server' },
+      { label: 'Basis Data', value: 'SQLite (Prisma / LibSQL)', icon: 'Database' },
       { label: 'Penyedia Hosting', value: 'Vercel', icon: 'Cloud' },
     ];
   }
   if (deployment === 'vps') {
     return [
-      { label: 'Antarmuka', value: 'React + Vite', icon: 'Atom' },
-      { label: 'Sisi Server', value: 'Laravel', icon: 'Server' },
-      { label: 'Basis Data', value: 'MySQL', icon: 'Database' },
-      { label: 'Penyedia Hosting', value: 'VPS', icon: 'Cloud' },
+      { label: 'Framework', value: 'Next.js (App Router, TypeScript)', icon: 'Atom' },
+      { label: 'Sisi Server', value: 'Node.js (Next.js Standalone)', icon: 'Server' },
+      { label: 'Basis Data', value: 'SQLite', icon: 'Database' },
+      { label: 'Penyedia Hosting', value: 'VPS (Docker / PM2)', icon: 'Cloud' },
     ];
   }
+  if (deployment === 'shared') {
+    return [
+      { label: 'Framework', value: 'Next.js (App Router, TypeScript)', icon: 'Atom' },
+      { label: 'Sisi Server', value: 'Node.js / Next.js', icon: 'Server' },
+      { label: 'Basis Data', value: 'SQLite', icon: 'Database' },
+      { label: 'Penyedia Hosting', value: 'cPanel / Shared Hosting (Node.js)', icon: 'Cloud' },
+    ];
+  }
+  // Default stack: Next.js + SQLite
   return [
-    { label: 'Antarmuka', value: 'React + Vite', icon: 'Atom' },
-    { label: 'Sisi Server', value: 'Laravel', icon: 'Server' },
-    { label: 'Basis Data', value: 'MySQL', icon: 'Database' },
-    { label: 'Penyedia Hosting', value: 'cPanel / Shared Hosting', icon: 'Cloud' },
+    { label: 'Framework', value: 'Next.js (App Router, TypeScript)', icon: 'Atom' },
+    { label: 'Styling', value: 'Tailwind CSS', icon: 'Server' },
+    { label: 'Basis Data', value: 'SQLite (Prisma / Drizzle ORM)', icon: 'Database' },
+    { label: 'Penyedia Hosting', value: 'Vercel / Cloud Platform (Rekomendasi AI)', icon: 'Cloud' },
   ];
 }
 
@@ -444,7 +453,7 @@ function buildStepPrompts(project: Project, features: ResultFeature[], tables: D
       step: '01',
       title: 'Project Setup',
       description: 'Menyiapkan struktur dasar aplikasi.',
-      prompt: `Buat project ${project.name} dengan stack yang direkomendasikan. Siapkan struktur folder, routing, dan layout dasar.`,
+      prompt: `Buat project ${project.name} menggunakan Next.js (App Router, TypeScript) dan Tailwind CSS. Siapkan struktur folder, routing, dan layout dasar.`,
     },
     ...(login
       ? [
@@ -452,7 +461,7 @@ function buildStepPrompts(project: Project, features: ResultFeature[], tables: D
             step: '02',
             title: 'Authentication',
             description: 'Membuat alur login dan hak akses.',
-            prompt: 'Buat halaman login, penyimpanan token, proteksi route, dan pembedaan hak akses per peran.',
+            prompt: 'Buat halaman login, penyimpanan sesi/token, proteksi route, dan pembedaan hak akses per peran.',
           },
         ]
       : []),
@@ -462,7 +471,7 @@ function buildStepPrompts(project: Project, features: ResultFeature[], tables: D
       description: 'Menyiapkan model dan migrasi data.',
       prompt:
         tables.length > 0
-          ? `Buat migrasi dan model untuk tabel: ${tables.map((table) => table.name).join(', ')}. Sertakan relasi antar tabel.`
+          ? `Buat migrasi dan model basis data SQLite untuk tabel: ${tables.map((table) => table.name).join(', ')} menggunakan Prisma atau Drizzle ORM. Sertakan relasi antar tabel.`
           : 'Aplikasi ini tidak memerlukan database. Lewati tahap ini.',
     },
     {

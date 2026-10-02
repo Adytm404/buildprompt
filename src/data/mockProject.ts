@@ -84,7 +84,7 @@ export function seedProjects(): Project[] {
       dynamic_stock: 'yes',
       design_style: 'saas',
       device_priority: 'both',
-      deployment: 'shared',
+      deployment: 'vercel',
     },
   });
 
@@ -131,7 +131,7 @@ export function createDemoProject(): Project {
     dynamic_stock: 'yes',
     design_style: 'saas',
     device_priority: 'both',
-    deployment: 'shared',
+    deployment: 'vercel',
   };
   return {
     ...project,

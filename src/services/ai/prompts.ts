@@ -90,6 +90,7 @@ ATURAN:
 - Cantumkan instruksi singkat untuk AI coding agent pada bagian awal.
 - Gunakan heading bernomor dan rapi, serta bullet yang konkret.
 - Wajib memuat bagian ini: 1 Ringkasan Produk, 2 Problem, 3 Target Users & Roles, 4 Goals, 5 Platform, 6 Tech Stack, 7 Design/UI Style, 8 Autentikasi & Data, 9 Fitur Utama (dengan subfitur), 10 Halaman, 11 User Flow, 12 Business Rules, 13 Database (tabel + kolom), 14 API (endpoint), 15 UI Requirements, 16 Security, 17 Testing, 18 Definition of Done.
+- ATURAN DEFAULT TECH STACK: Jika pengguna tidak meminta teknologi atau database tertentu, GUNAKAN SELALU default stack: Next.js (App Router, React, TypeScript, Tailwind CSS) untuk frontend & backend, dan SQLite (misalnya menggunakan Prisma ORM atau Drizzle ORM / better-sqlite3) sebagai basis data.
 - Bersikap spesifik: sebutkan nama tabel/kolom, endpoint, dan aturan bisnis yang masuk akal.
 - Jangan menambah komentar di luar dokumen.`;
 }
