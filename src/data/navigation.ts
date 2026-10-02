@@ -2,6 +2,7 @@ import {
   ArrowLeft,
   ClipboardList,
   Cpu,
+  CreditCard,
   Database,
   FileText,
   Layers,
@@ -31,6 +32,7 @@ export const GLOBAL_NAV_ITEMS: NavItem[] = [
   { id: 'new', label: 'Proyek Baru', icon: PlusCircle, to: '/new' },
   { id: 'studio', label: 'Studio AI', icon: MessagesSquare, to: '/projects' },
   { id: 'projects', label: 'Semua Proyek', icon: LayoutGrid, to: '/projects/all' },
+  { id: 'pricing', label: 'Paket Langganan', icon: CreditCard, to: '/pricing' },
 ];
 
 export function projectReviewNavItems(projectId: string): NavItem[] {

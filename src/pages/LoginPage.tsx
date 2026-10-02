@@ -1,16 +1,22 @@
-import { ArrowLeft, ArrowUp, Github, Lock } from 'lucide-react';
+import { ArrowLeft, ArrowUp, Github, Lock, ShieldCheck } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AppLogo } from '@/components/layout/AppLogo';
 import { DitherWave } from '@/components/landing/DitherWave';
+import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/ToastProvider';
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { login } = useAuth();
   const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const rawRedirect = searchParams.get('redirect');
+  const redirectTarget = rawRedirect ? decodeURIComponent(rawRedirect) : '/projects';
 
   const handleLogin = (e: FormEvent) => {
     e.preventDefault();
@@ -18,22 +24,24 @@ export function LoginPage() {
     setLoading(true);
     window.setTimeout(() => {
       setLoading(false);
+      login(email.trim());
       toast({
         title: 'Berhasil masuk',
-        description: 'Selamat datang kembali di buildprompt Studio.',
+        description: 'Selamat datang di buildprompt Studio.',
         variant: 'success',
       });
-      navigate('/projects');
-    }, 600);
+      navigate(redirectTarget, { replace: true });
+    }, 500);
   };
 
   const handleOAuth = (provider: string) => {
+    login(`user_${provider.toLowerCase()}@buildprompt.dev`, `Pengguna ${provider}`);
     toast({
       title: `Masuk dengan ${provider}`,
-      description: `Autentikasi sosial ${provider} berhasil (mode demo).`,
+      description: `Autentikasi sosial ${provider} berhasil.`,
       variant: 'success',
     });
-    navigate('/projects');
+    navigate(redirectTarget, { replace: true });
   };
 
   return (
@@ -58,6 +66,13 @@ export function LoginPage() {
           <p className="mt-1 text-xs sm:text-sm text-white/50">
             Masuk untuk menyimpan dan mengelola seluruh dokumen PRD proyek Anda.
           </p>
+
+          {rawRedirect && (
+            <div className="mt-4 flex items-center gap-2 rounded-xl border border-purple-500/30 bg-purple-500/10 px-3.5 py-2.5 text-xs text-purple-200">
+              <ShieldCheck size={16} className="text-purple-400 shrink-0" />
+              <span>Silakan masuk terlebih dahulu untuk mengakses halaman langganan.</span>
+            </div>
+          )}
 
           {/* Social Logins */}
           <div className="mt-6 space-y-2.5">

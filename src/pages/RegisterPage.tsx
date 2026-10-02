@@ -1,17 +1,23 @@
 import { ArrowLeft, ArrowUp, Github, Sparkles } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AppLogo } from '@/components/layout/AppLogo';
 import { DitherWave } from '@/components/landing/DitherWave';
+import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/ToastProvider';
 
 export function RegisterPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { login } = useAuth();
   const { toast } = useToast();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const rawRedirect = searchParams.get('redirect');
+  const redirectTarget = rawRedirect ? decodeURIComponent(rawRedirect) : '/new';
 
   const handleRegister = (e: FormEvent) => {
     e.preventDefault();
@@ -19,22 +25,24 @@ export function RegisterPage() {
     setLoading(true);
     window.setTimeout(() => {
       setLoading(false);
+      login(email.trim(), name.trim());
       toast({
         title: 'Akun berhasil dibuat',
         description: `Selamat datang, ${name}! Siap merancang PRD pertama Anda.`,
         variant: 'success',
       });
-      navigate('/new');
-    }, 600);
+      navigate(redirectTarget, { replace: true });
+    }, 500);
   };
 
   const handleOAuth = (provider: string) => {
+    login(`user_${provider.toLowerCase()}@buildprompt.dev`, `Pengembang ${provider}`);
     toast({
       title: `Daftar dengan ${provider}`,
-      description: `Pendaftaran sosial ${provider} berhasil (mode demo).`,
+      description: `Pendaftaran sosial ${provider} berhasil.`,
       variant: 'success',
     });
-    navigate('/new');
+    navigate(redirectTarget, { replace: true });
   };
 
   return (

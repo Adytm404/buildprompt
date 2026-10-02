@@ -4,11 +4,13 @@ import { HomePage } from '@/pages/HomePage';
 import { InterviewPage } from '@/pages/InterviewPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
+import { PricingPage } from '@/pages/PricingPage';
 import { ProjectsPage } from '@/pages/ProjectsPage';
 import { AllProjectsPage } from '@/pages/AllProjectsPage';
 import { PromptPage } from '@/pages/PromptPage';
 import { RegisterPage } from '@/pages/RegisterPage';
 import { ReviewPage } from '@/pages/ReviewPage';
+import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -32,6 +34,14 @@ export default function App() {
         <Route path="/new" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route
+          path="/pricing"
+          element={
+            <ProtectedRoute>
+              <PricingPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/projects" element={<ProjectsPage />} />
         <Route path="/projects/all" element={<AllProjectsPage />} />
         <Route path="/project/:projectId/interview" element={<InterviewPage />} />

@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
-import { ChevronDown, Plus, Sparkles, UserCircle, X } from 'lucide-react';
+import { ChevronDown, LogOut, Plus, Sparkles, UserCircle, X } from 'lucide-react';
 import { AppLogo } from '@/components/layout/AppLogo';
+import { useAuth } from '@/context/AuthContext';
 import { GLOBAL_NAV_ITEMS, type NavItem } from '@/data/navigation';
 import { cn } from '@/lib/utils';
 
@@ -24,6 +25,7 @@ export function AppSidebar({
   className,
 }: AppSidebarProps) {
   const location = useLocation();
+  const { user, isAuthenticated, logout } = useAuth();
 
   const isGlobalActive = (item: NavItem) => {
     if (projectName) return false;
@@ -172,28 +174,62 @@ export function AppSidebar({
 
       {/* Bottom Area: Status & Profile Card (Gambar 3 style) */}
       <div className="border-t border-white/10 p-2.5 space-y-2">
-        {/* AI Engine Status Card */}
+        {/* Subscription Plan & Usage Status Card */}
         <div className="rounded-xl border border-white/10 bg-white/[0.03] p-2.5 text-left">
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-1.5 text-[11px] font-semibold text-white/90">
               <Sparkles size={12} className="text-pink-400" />
-              Studio AI Aktif
+              {user ? (user.plan === 'free' ? 'Paket Gratis' : user.plan === 'pro_monthly' ? 'Paket Pro Bulanan' : 'Paket Pro 3 Bulan') : 'Studio AI'}
             </span>
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[10px] font-mono text-purple-300 font-bold">
+              {user?.plan === 'free' ? '1x / hari' : user ? 'Unlimited' : 'Aktif'}
+            </span>
           </div>
-          <p className="mt-1 text-[10px] text-white/40 truncate">DeepSeek v4.1 Flash Siap</p>
+          <div className="mt-1 flex items-center justify-between text-[10px]">
+            <span className="text-white/40">
+              {user?.plan === 'free' ? 'Maks. 5x / bulan' : user ? 'Bebas Kuota' : 'DeepSeek v4.1 Siap'}
+            </span>
+            <Link
+              to="/pricing"
+              onClick={onClose}
+              className="font-medium text-purple-400 hover:text-purple-300 transition"
+            >
+              {user?.plan === 'free' ? 'Upgrade →' : 'Kelola →'}
+            </Link>
+          </div>
         </div>
 
         {/* Bottom Profile Pill */}
         <div className="flex items-center justify-between pt-1">
-          <Link
-            to="/login"
-            onClick={onClose}
-            className="flex items-center gap-2 rounded-lg px-2 py-1 text-xs font-medium text-white/70 hover:bg-white/5 hover:text-white transition"
-          >
-            <UserCircle size={17} className="text-white/50" />
-            <span>Akun Pengembang</span>
-          </Link>
+          {isAuthenticated && user ? (
+            <div className="flex w-full items-center justify-between rounded-lg px-2 py-1 text-xs text-white/80">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 text-[10px] font-bold text-white">
+                  {user.name.charAt(0).toUpperCase()}
+                </span>
+                <span className="truncate text-xs font-medium text-white/80" title={user.email}>
+                  {user.name}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={logout}
+                className="text-white/40 hover:text-rose-400 transition p-1"
+                title="Keluar akun"
+              >
+                <LogOut size={13} />
+              </button>
+            </div>
+          ) : (
+            <Link
+              to="/login"
+              onClick={onClose}
+              className="flex w-full items-center gap-2 rounded-lg px-2 py-1 text-xs font-medium text-white/70 hover:bg-white/5 hover:text-white transition"
+            >
+              <UserCircle size={17} className="text-white/50" />
+              <span>Masuk Akun</span>
+            </Link>
+          )}
         </div>
       </div>
     </aside>
