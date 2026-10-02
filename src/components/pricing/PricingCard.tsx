@@ -1,4 +1,4 @@
-import { Check, ChevronDown, Sparkles, User, Zap } from 'lucide-react';
+import { Check, Sparkles, User, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { SubscriptionPlan } from '@/context/AuthContext';
 
@@ -73,14 +73,8 @@ export function PricingCard({ tier, currentPlan, onSelect }: PricingCardProps) {
             <p className="mt-1 text-[11px] text-white/30">&nbsp;</p>
           )}
 
-          {/* Quota Selector / Dropdown Pill (Image 1 style) */}
-          <div className="mt-4 flex items-center justify-between rounded-xl border border-white/15 bg-white/[0.04] px-3.5 py-2 text-xs text-white/80 font-medium">
-            <span className="truncate">{tier.quotaLabel}</span>
-            <ChevronDown size={14} className="text-white/40 shrink-0 ml-1.5" />
-          </div>
-
-          {/* Action Button (Image 1 style) */}
-          <div className="mt-4">
+          {/* Action Button */}
+          <div className="mt-5">
             <button
               type="button"
               disabled={isCurrent}
@@ -99,7 +93,7 @@ export function PricingCard({ tier, currentPlan, onSelect }: PricingCardProps) {
           </div>
         </div>
 
-        {/* Benefits Indicators Row (Image 1 style) */}
+        {/* Benefits Indicators Row */}
         <div className="py-4 border-b border-white/10 space-y-2 text-xs text-white/70">
           <div className="flex items-center gap-2">
             <User size={14} className="text-white/40 shrink-0" />
@@ -117,12 +111,28 @@ export function PricingCard({ tier, currentPlan, onSelect }: PricingCardProps) {
             Fitur Termasuk:
           </p>
           <ul className="space-y-2.5">
-            {tier.features.map((feature, idx) => (
-              <li key={idx} className="flex items-start gap-2.5 text-xs text-white/75 leading-relaxed">
-                <Check size={14} className="text-purple-400 shrink-0 mt-0.5" strokeWidth={2.5} />
-                <span>{feature}</span>
-              </li>
-            ))}
+            {tier.features.map((feature, idx) => {
+              const hasColon = feature.includes(':');
+              if (hasColon) {
+                const [label, ...valParts] = feature.split(':');
+                const val = valParts.join(':').trim();
+                return (
+                  <li key={idx} className="flex items-start gap-2.5 text-xs text-white/75 leading-relaxed">
+                    <Check size={14} className="text-purple-400 shrink-0 mt-0.5" strokeWidth={2.5} />
+                    <span>
+                      <span className="font-semibold text-white/90">{label}:</span>{' '}
+                      <span className="text-white/70">{val}</span>
+                    </span>
+                  </li>
+                );
+              }
+              return (
+                <li key={idx} className="flex items-start gap-2.5 text-xs text-white/75 leading-relaxed">
+                  <Check size={14} className="text-purple-400 shrink-0 mt-0.5" strokeWidth={2.5} />
+                  <span>{feature}</span>
+                </li>
+              );
+            })}
           </ul>
         </div>
       </div>
