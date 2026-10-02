@@ -16,7 +16,7 @@ export function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const rawRedirect = searchParams.get('redirect');
-  const redirectTarget = rawRedirect ? decodeURIComponent(rawRedirect) : '/projects';
+  const redirectTarget = rawRedirect ? decodeURIComponent(rawRedirect) : '/dashboard/projects';
 
   const handleLogin = (e: FormEvent) => {
     e.preventDefault();

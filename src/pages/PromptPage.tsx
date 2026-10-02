@@ -115,7 +115,7 @@ export function PromptPage() {
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-6">
           <div>
             <nav className="text-xs text-white/40" aria-label="Breadcrumb">
-              <Link to="/projects/all" className="transition hover:text-white">
+              <Link to="/dashboard/projects/all" className="transition hover:text-white">
                 Proyek
               </Link>
               <span className="mx-2 text-white/20">/</span>
@@ -145,7 +145,7 @@ export function PromptPage() {
               Ubah Kebutuhan
             </Button>
             <Link
-              to={`/project/${project.id}/review`}
+              to={`/dashboard/project/${project.id}/review`}
               className="text-xs font-medium text-pink-400 hover:text-pink-300 transition"
             >
               Lihat spesifikasi lengkap →

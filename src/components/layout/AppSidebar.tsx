@@ -30,8 +30,9 @@ export function AppSidebar({
   const isGlobalActive = (item: NavItem) => {
     if (projectName) return false;
     if (item.to) {
-      if (item.to === '/projects/all') return location.pathname.startsWith('/projects/all');
-      if (item.to === '/projects') return location.pathname === '/projects';
+      if (item.to === '/dashboard/projects/all') return location.pathname.startsWith('/dashboard/projects/all') || location.pathname.startsWith('/projects/all');
+      if (item.to === '/dashboard/projects') return location.pathname === '/dashboard/projects' || location.pathname === '/dashboard' || location.pathname === '/projects';
+      if (item.to === '/dashboard/pricing') return location.pathname === '/dashboard/pricing' || location.pathname === '/pricing';
       if (item.to === '/new') return location.pathname === '/new';
       return location.pathname === item.to;
     }
@@ -190,7 +191,7 @@ export function AppSidebar({
               {user?.plan === 'free' ? 'Maks. 5x / bulan' : user ? 'Bebas Kuota' : 'DeepSeek v4.1 Siap'}
             </span>
             <Link
-              to="/pricing"
+              to="/dashboard/pricing"
               onClick={onClose}
               className="font-medium text-purple-400 hover:text-purple-300 transition"
             >

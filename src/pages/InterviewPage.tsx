@@ -248,13 +248,13 @@ export function InterviewPage() {
   useEffect(() => {
     if (!project || !project.completed) return;
     const target =
-      project.status === 'generated' ? `/project/${project.id}/prompt` : `/project/${project.id}/review`;
+      project.status === 'generated' ? `/dashboard/project/${project.id}/prompt` : `/dashboard/project/${project.id}/review`;
     navigate(target, { replace: true });
   }, [project, navigate]);
 
   const exit = () => {
     if (project) saveInterview(project.id, answers, step);
-    navigate('/projects');
+    navigate('/dashboard/projects');
   };
 
   const continueWithLocal = useCallback(() => {
@@ -348,7 +348,7 @@ export function InterviewPage() {
           if (finishedRef.current) return;
           finishedRef.current = true;
           completeInterview(project.id);
-          navigate(`/project/${project.id}/prompt`, { replace: true });
+          navigate(`/dashboard/project/${project.id}/prompt`, { replace: true });
         }}
       />
     );

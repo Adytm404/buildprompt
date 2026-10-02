@@ -26,7 +26,7 @@ export function ProjectNotFound({
         </button>
         <button
           type="button"
-          onClick={() => navigate('/projects/all')}
+          onClick={() => navigate('/dashboard/projects/all')}
           className="rounded-full bg-white px-4 py-2 text-xs font-semibold text-black transition hover:bg-white/90"
         >
           Lihat Proyek

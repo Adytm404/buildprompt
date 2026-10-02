@@ -8,6 +8,7 @@ import {
   Pencil,
   Plus,
   Search,
+  Share2,
   SlidersHorizontal,
   Trash2,
   X,
@@ -17,132 +18,38 @@ import { useNavigate } from 'react-router-dom';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { Modal } from '@/components/ui/Modal';
+import { ShareProjectModal } from '@/components/project/ShareProjectModal';
 import { useToast } from '@/components/ui/ToastProvider';
 import { useProject } from '@/context/ProjectContext';
 import { formatDate, formatRelativeTime } from '@/lib/utils';
+import { getProjectTechStack } from '@/components/project/TechLogos';
 import type { Project } from '@/types';
 
 function projectHref(project: Project): string {
-  if (project.status === 'generated') return `/project/${project.id}/prompt`;
-  if (project.status === 'reviewing') return `/project/${project.id}/review`;
-  return `/project/${project.id}/interview`;
+  if (project.status === 'generated') return `/dashboard/project/${project.id}/prompt`;
+  if (project.status === 'reviewing') return `/dashboard/project/${project.id}/review`;
+  return `/dashboard/project/${project.id}/interview`;
 }
 
-function ProjectSchematic({ project }: { project: Project }) {
-  const isPos = /(kasir|warung|pos|toko|retail)/i.test(project.name + project.idea);
-  const isBooking = /(booking|barber|salon|jadwal)/i.test(project.name + project.idea);
-  const isFinance = /(keuangan|finansial|catatan|budget)/i.test(project.name + project.idea);
+function ProjectTechStackBadges({ project }: { project: Project }) {
+  const platform = project.answers?.platform as string | undefined;
+  const stack = getProjectTechStack(platform);
 
-  if (isPos) {
-    return (
-      <div className="flex items-center justify-center gap-2.5 w-full px-3">
-        {/* Mini POS Register Window */}
-        <div className="relative w-24 rounded-lg border border-purple-400/40 bg-purple-950/40 p-2 shadow-inner">
-          <div className="flex items-center justify-between border-b border-purple-400/20 pb-1 mb-1.5">
-            <span className="text-[8px] font-mono font-bold text-purple-300">POS / KASIR</span>
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          </div>
-          <div className="space-y-1">
-            <div className="h-1.5 w-full rounded-sm bg-white/20" />
-            <div className="h-1.5 w-3/4 rounded-sm bg-white/15" />
-            <div className="flex justify-between items-center pt-0.5 border-t border-purple-500/20">
-              <span className="text-[7px] text-purple-300 font-mono">TOTAL</span>
-              <span className="text-[7px] text-white font-mono font-bold">Rp --</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Sync indicator */}
-        <div className="flex flex-col items-center">
-          <span className="text-[8px] font-mono text-purple-400/60">&gt;&gt;</span>
-          <span className="text-[7px] font-mono text-purple-300/40">DB</span>
-        </div>
-
-        {/* Mini SQLite Table Card */}
-        <div className="w-20 rounded-lg border border-white/20 bg-black/40 p-2 text-[7px] font-mono space-y-1">
-          <div className="text-purple-300 font-bold border-b border-white/10 pb-0.5">stok_sqlite</div>
-          <div className="text-emerald-400">auto-sync ✓</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (isBooking) {
-    return (
-      <div className="flex items-center justify-center gap-2.5 w-full px-3">
-        {/* Mini Schedule Calendar */}
-        <div className="w-24 rounded-lg border border-indigo-400/40 bg-indigo-950/40 p-2">
-          <div className="flex items-center justify-between border-b border-indigo-400/20 pb-1 mb-1.5">
-            <span className="text-[8px] font-mono font-bold text-indigo-300">JADWAL</span>
-            <span className="text-[7px] text-white/40">Hari ini</span>
-          </div>
-          <div className="grid grid-cols-2 gap-1 text-[7px] font-mono">
-            <span className="rounded bg-white/5 p-0.5 text-center text-white/40">10:00</span>
-            <span className="rounded bg-purple-500/30 border border-purple-400/50 p-0.5 text-center text-purple-200 font-bold animate-pulse">
-              11:00
-            </span>
-          </div>
-        </div>
-
-        <div className="flex flex-col items-center">
-          <span className="text-[8px] font-mono text-indigo-400/60">&gt;&gt;</span>
-        </div>
-
-        {/* Mini Kapster Card */}
-        <div className="w-20 rounded-lg border border-white/20 bg-black/40 p-2 text-[7px] font-mono space-y-1">
-          <div className="text-indigo-300 font-bold border-b border-white/10 pb-0.5">kapster</div>
-          <div className="text-emerald-400">tersedia ✓</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (isFinance) {
-    return (
-      <div className="flex items-center justify-center gap-2.5 w-full px-3">
-        {/* Mini Wallet */}
-        <div className="w-24 rounded-lg border border-cyan-400/40 bg-cyan-950/40 p-2">
-          <div className="flex items-center justify-between border-b border-cyan-400/20 pb-1 mb-1.5">
-            <span className="text-[8px] font-mono font-bold text-cyan-300">SALDO</span>
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-          </div>
-          <div className="h-1.5 w-14 rounded bg-white/20 mb-1" />
-          <div className="h-1.5 w-16 rounded bg-cyan-500/30" />
-        </div>
-
-        <div className="flex flex-col items-center">
-          <span className="text-[8px] font-mono text-cyan-400/60">&gt;&gt;</span>
-        </div>
-
-        {/* Mini Sparkline Chart */}
-        <div className="w-20 rounded-lg border border-white/20 bg-black/40 p-2 text-[7px] font-mono flex flex-col justify-between h-14">
-          <span className="text-white/40">arus kas</span>
-          <svg viewBox="0 0 40 15" className="w-full h-3 overflow-visible">
-            <path d="M0 12 L10 10 L20 14 L30 5 L40 2" fill="none" stroke="#38BDF8" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
-        </div>
-      </div>
-    );
-  }
-
-  // Default Architecture Schematic
   return (
-    <div className="flex items-center justify-center gap-2.5 w-full px-3">
-      <div className="w-28 rounded-lg border border-purple-400/30 bg-purple-950/30 p-2 font-mono">
-        <div className="flex items-center gap-1 border-b border-white/10 pb-1 mb-1.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-white/40" />
-          <span className="h-1.5 w-1.5 rounded-full bg-white/40" />
-          <span className="text-[7px] text-purple-300 ml-1">PRD Spec</span>
+    <div className="inline-flex items-center justify-center gap-2 sm:gap-2.5 rounded-2xl border border-white/10 bg-black/60 p-2 sm:p-2.5 backdrop-blur-md shadow-xl">
+      {stack.map((item) => (
+        <div
+          key={item.name}
+          className="flex flex-col items-center justify-center w-13 sm:w-14 h-14 sm:h-15 rounded-xl border border-white/5 bg-white/[0.03] p-1.5 transition-all duration-200 group-hover:border-white/20 group-hover:bg-white/[0.07] shadow-sm"
+        >
+          <div className="flex items-center justify-center h-7 sm:h-7.5 shrink-0">
+            {item.icon}
+          </div>
+          <span className="mt-1 text-[9.5px] font-medium font-sans text-white/75 text-center leading-none">
+            {item.name}
+          </span>
         </div>
-        <div className="space-y-1">
-          <div className="h-1.5 w-full rounded bg-white/20" />
-          <div className="h-1.5 w-2/3 rounded bg-white/15" />
-        </div>
-      </div>
-      <div className="w-18 rounded-lg border border-white/15 bg-black/40 p-2 text-[7px] font-mono text-white/50">
-        <div>Next.js 15</div>
-        <div className="text-purple-300">SQLite</div>
-      </div>
+      ))}
     </div>
   );
 }
@@ -180,9 +87,9 @@ function ProjectThumbnail({ project }: { project: Project }) {
         </span>
       </div>
 
-      {/* Center: Dynamic Animated Schematic Wireframe Illustration! */}
+      {/* Center: Official Tech Stack Logos */}
       <div className="relative z-10 flex-1 flex items-center justify-center py-1">
-        <ProjectSchematic project={project} />
+        <ProjectTechStackBadges project={project} />
       </div>
 
       {/* Bottom Bar: Stack & Date */}
@@ -205,13 +112,14 @@ function ProjectThumbnail({ project }: { project: Project }) {
 interface Image1CardProps {
   project: Project;
   onOpen: () => void;
+  onShare: () => void;
   onRename: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
 }
 
 const Image1ProjectCard = forwardRef<HTMLDivElement, Image1CardProps>(function Image1ProjectCard(
-  { project, onOpen, onRename, onDuplicate, onDelete },
+  { project, onOpen, onShare, onRename, onDuplicate, onDelete },
   ref,
 ) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -234,6 +142,7 @@ const Image1ProjectCard = forwardRef<HTMLDivElement, Image1CardProps>(function I
   }, [menuOpen]);
 
   const menuItems = [
+    { id: 'share', label: 'Bagikan', icon: Share2, action: onShare },
     { id: 'rename', label: 'Ubah Nama', icon: Pencil, action: onRename },
     { id: 'duplicate', label: 'Duplikatkan', icon: Copy, action: onDuplicate },
     { id: 'delete', label: 'Hapus', icon: Trash2, action: onDelete, danger: true },
@@ -328,6 +237,7 @@ export function AllProjectsPage() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterActive, setFilterActive] = useState(true);
+  const [shareTarget, setShareTarget] = useState<Project | null>(null);
   const [renameTarget, setRenameTarget] = useState<Project | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
   const [draftName, setDraftName] = useState('');
@@ -492,6 +402,7 @@ export function AllProjectsPage() {
                     key={project.id}
                     project={project}
                     onOpen={() => navigate(projectHref(project))}
+                    onShare={() => setShareTarget(project)}
                     onRename={() => {
                       setRenameTarget(project);
                       setDraftName(project.name);
@@ -507,6 +418,12 @@ export function AllProjectsPage() {
       </div>
 
       {/* Modals */}
+      <ShareProjectModal
+        project={shareTarget}
+        open={Boolean(shareTarget)}
+        onClose={() => setShareTarget(null)}
+      />
+
       <Modal
         open={Boolean(renameTarget)}
         onClose={() => setRenameTarget(null)}

@@ -23,10 +23,10 @@ export function Navbar() {
               <span>Alur AI</span>
               <ChevronDown size={14} className="opacity-50" />
             </div>
-            <Link to="/projects/all" className="transition hover:text-white">
+            <Link to="/dashboard/projects/all" className="transition hover:text-white">
               Proyek
             </Link>
-            <Link to="/pricing" className="transition hover:text-white flex items-center gap-1">
+            <Link to="/dashboard/pricing" className="transition hover:text-white flex items-center gap-1">
               <span>Harga</span>
               <span className="rounded-full bg-purple-500/20 border border-purple-400/30 px-1.5 py-0.2 text-[9px] font-bold text-purple-300">
                 PRO
@@ -40,7 +40,7 @@ export function Navbar() {
           {isAuthenticated && user ? (
             <div className="flex items-center gap-2">
               <Link
-                to="/pricing"
+                to="/dashboard/pricing"
                 className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-purple-500/30 bg-purple-500/10 px-3 py-1 text-xs font-semibold text-purple-200 hover:bg-purple-500/20 transition"
               >
                 <span>{user.plan === 'free' ? 'Upgrade Paket' : 'Paket Pro Aktif'}</span>

@@ -66,7 +66,7 @@ export function ReviewPage() {
 
   const selectSection = (id: string) => {
     if (id === 'prompt') {
-      navigate(`/project/${project.id}/prompt`);
+      navigate(`/dashboard/project/${project.id}/prompt`);
       return;
     }
     setActive(id);
@@ -99,7 +99,7 @@ export function ReviewPage() {
           description={project.description}
           primaryLabel="Buat PRD Prompt"
           primaryIcon={<Sparkles size={16} />}
-          onPrimary={() => navigate(`/project/${project.id}/prompt`)}
+          onPrimary={() => navigate(`/dashboard/project/${project.id}/prompt`)}
           onEdit={() => setDrawerOpen(true)}
         />
 
@@ -352,7 +352,7 @@ export function ReviewPage() {
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={() => navigate(`/project/${project.id}/prompt`)}
+                  onClick={() => navigate(`/dashboard/project/${project.id}/prompt`)}
                   leftIcon={<Sparkles size={14} />}
                   className="bg-white text-black hover:bg-white/90 rounded-full"
                 >

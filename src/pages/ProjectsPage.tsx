@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowRight, ChevronDown, Copy, MoreHorizontal, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { ArrowRight, ChevronDown, Copy, MoreHorizontal, Pencil, Plus, Search, Share2, Trash2 } from 'lucide-react';
 import { forwardRef, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { EmptyState } from '@/components/feedback/EmptyState';
@@ -7,6 +7,7 @@ import { AIComposer } from '@/components/layout/AIComposer';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { ShareProjectModal } from '@/components/project/ShareProjectModal';
 import { Progress } from '@/components/ui/Progress';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useToast } from '@/components/ui/ToastProvider';
@@ -15,21 +16,22 @@ import { formatRelativeTime } from '@/lib/utils';
 import type { Project } from '@/types';
 
 function projectHref(project: Project): string {
-  if (project.status === 'generated') return `/project/${project.id}/prompt`;
-  if (project.status === 'reviewing') return `/project/${project.id}/review`;
-  return `/project/${project.id}/interview`;
+  if (project.status === 'generated') return `/dashboard/project/${project.id}/prompt`;
+  if (project.status === 'reviewing') return `/dashboard/project/${project.id}/review`;
+  return `/dashboard/project/${project.id}/interview`;
 }
 
 interface ProjectCardProps {
   project: Project;
   onOpen: () => void;
+  onShare: () => void;
   onRename: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
 }
 
 const ProjectCard = forwardRef<HTMLDivElement, ProjectCardProps>(function ProjectCard(
-  { project, onOpen, onRename, onDuplicate, onDelete },
+  { project, onOpen, onShare, onRename, onDuplicate, onDelete },
   ref,
 ) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -52,6 +54,7 @@ const ProjectCard = forwardRef<HTMLDivElement, ProjectCardProps>(function Projec
   }, [menuOpen]);
 
   const menuItems = [
+    { id: 'share', label: 'Bagikan', icon: Share2, action: onShare },
     { id: 'rename', label: 'Ubah Nama', icon: Pencil, action: onRename },
     { id: 'duplicate', label: 'Duplikatkan', icon: Copy, action: onDuplicate },
     { id: 'delete', label: 'Hapus', icon: Trash2, action: onDelete, danger: true },
@@ -159,6 +162,7 @@ export function ProjectsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'generated' | 'draft'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [shareTarget, setShareTarget] = useState<Project | null>(null);
   const [renameTarget, setRenameTarget] = useState<Project | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
   const [draftName, setDraftName] = useState('');
@@ -174,7 +178,7 @@ export function ProjectsPage() {
   const handleQuickSubmit = () => {
     if (!quickIdea.trim()) return;
     const project = createProject(quickIdea.trim());
-    navigate(`/project/${project.id}/interview`);
+    navigate(`/dashboard/project/${project.id}/interview`);
   };
 
   const handleRename = () => {
@@ -324,7 +328,7 @@ export function ProjectsPage() {
               <div className="flex items-center gap-2 sm:gap-3">
                 <span className="text-xs text-white/40 hidden sm:inline">{filteredProjects.length} Proyek</span>
                 <Link
-                  to="/projects/all"
+                  to="/dashboard/projects/all"
                   className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-3.5 py-1.5 text-xs font-semibold text-white/90 transition hover:bg-white/15 hover:text-white"
                 >
                   <span>Lihat semua proyek</span>
@@ -377,6 +381,7 @@ export function ProjectsPage() {
                         key={project.id}
                         project={project}
                         onOpen={() => navigate(projectHref(project))}
+                        onShare={() => setShareTarget(project)}
                         onRename={() => {
                           setRenameTarget(project);
                           setDraftName(project.name);
@@ -394,6 +399,12 @@ export function ProjectsPage() {
       </div>
 
       {/* Modals */}
+      <ShareProjectModal
+        project={shareTarget}
+        open={Boolean(shareTarget)}
+        onClose={() => setShareTarget(null)}
+      />
+
       <Modal
         open={Boolean(renameTarget)}
         onClose={() => setRenameTarget(null)}

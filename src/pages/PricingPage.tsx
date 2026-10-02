@@ -90,7 +90,7 @@ export function PricingPage() {
         {/* Navigation Breadcrumb */}
         <div className="mb-6 flex items-center justify-between">
           <Link
-            to="/projects"
+            to="/dashboard/projects"
             className="inline-flex items-center gap-2 text-xs font-medium text-white/50 hover:text-white transition"
           >
             <ArrowLeft size={14} />

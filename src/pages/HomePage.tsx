@@ -31,7 +31,7 @@ export function HomePage() {
 
   const finish = () => {
     const project = createProject(pendingRef.current);
-    navigate(`/project/${project.id}/interview`, { replace: true });
+    navigate(`/dashboard/project/${project.id}/interview`, { replace: true });
   };
 
   if (submitting) {
