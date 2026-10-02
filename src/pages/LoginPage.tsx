@@ -2,6 +2,7 @@ import { ArrowLeft, ArrowUp, Github, Lock } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AppLogo } from '@/components/layout/AppLogo';
+import { DitherWave } from '@/components/landing/DitherWave';
 import { useToast } from '@/components/ui/ToastProvider';
 
 export function LoginPage() {
@@ -168,41 +169,55 @@ export function LoginPage() {
         </div>
       </div>
 
-      {/* Right Column: Aurora Glow Studio Canvas (Gambar 2 style) */}
-      <div className="relative hidden md:flex flex-col items-center justify-center overflow-hidden bg-[#07080B] p-10 lg:p-16">
-        {/* Glow Spheres */}
-        <div className="pointer-events-none absolute -top-1/4 -right-1/4 h-96 w-96 rounded-full bg-blue-600/30 blur-[110px]" />
-        <div className="pointer-events-none absolute -bottom-1/4 -left-1/4 h-96 w-96 rounded-full bg-pink-600/35 blur-[120px]" />
-        <div className="pointer-events-none absolute top-1/3 left-1/4 h-80 w-80 rounded-full bg-purple-600/30 blur-[100px]" />
+      {/* Right Column: Studio Canvas with Animated Dither Wave Accent */}
+      <div className="relative hidden md:flex flex-col items-center justify-center overflow-hidden bg-[#0A0512] p-10 lg:p-16">
+        {/* Animated Dither Wave Canvas Background */}
+        <div className="absolute inset-0 z-0">
+          <DitherWave
+            pixelSize={5}
+            speed={0.65}
+            primaryColor="#6D28D9"
+            secondaryColor="#3B0764"
+            backgroundColor="#0A0512"
+            waveBaseHeight={0.65}
+            amplitude={50}
+            ditherDepth={85}
+            interactive={true}
+          />
+        </div>
+
+        {/* Ambient Top & Bottom Vignettes */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-44 z-0 bg-gradient-to-b from-[#0A0512] via-[#0A0512]/60 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 z-0 bg-gradient-to-t from-[#0A0512] to-transparent" />
 
         {/* Floating Mockup Card */}
-        <div className="relative z-10 w-full max-w-sm rounded-3xl border border-white/15 bg-[#12141D]/90 p-5 shadow-2xl backdrop-blur-xl">
+        <div className="relative z-10 w-full max-w-sm rounded-[24px] border border-purple-500/25 bg-[#120F22]/90 p-5 shadow-[0_16px_50px_rgba(109,40,217,0.25)] backdrop-blur-xl">
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <div className="flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
               <span className="text-[11px] font-semibold text-white/80">PRD Architecture Engine</span>
             </div>
-            <span className="rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[9px] font-mono text-white/40">
-              Markdown Ready
+            <span className="rounded-md border border-purple-400/20 bg-purple-500/15 px-1.5 py-0.5 text-[9px] font-mono text-purple-200">
+              Next.js + SQLite
             </span>
           </div>
 
           <div className="mt-4 rounded-xl border border-white/10 bg-[#090A0E] p-3 font-mono text-[11px] text-white/70 space-y-1.5">
-            <p className="text-pink-400 font-bold"># Kasir Warung — PRD</p>
+            <p className="text-purple-300 font-bold"># Kasir Warung — PRD</p>
             <p className="text-white/40">&gt; Target: Cursor &amp; Claude Code</p>
-            <p className="text-emerald-400">## 1. Skema Basis Data</p>
+            <p className="text-emerald-400">## 1. Skema Basis Data SQLite</p>
             <p className="text-white/60">- transactions (id, user_id, total)</p>
             <p className="text-white/60">- stock_movements (id, qty, type)</p>
-            <p className="text-emerald-400">## 2. API Endpoints</p>
+            <p className="text-emerald-400">## 2. Next.js API Routes</p>
             <p className="text-white/60">POST /api/pos/checkout</p>
           </div>
 
           {/* Floating Pill Input */}
-          <div className="mt-4 flex items-center justify-between gap-2 rounded-full border border-white/15 bg-[#0A0B0E] p-1.5 pl-3">
-            <span className="text-xs text-white/60 truncate">
+          <div className="mt-4 flex items-center justify-between gap-2 rounded-full border border-purple-400/25 bg-[#0A0B0E] p-1.5 pl-3">
+            <span className="text-xs text-white/60 truncate font-sans">
               Minta buildprompt menyusun prototipe...
             </span>
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-black shrink-0 shadow">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-purple-600 text-white shrink-0 shadow">
               <ArrowUp size={13} strokeWidth={2.5} />
             </span>
           </div>
