@@ -6,9 +6,9 @@ import { AIComposer } from '@/components/layout/AIComposer';
 import { Navbar } from '@/components/layout/Navbar';
 import { SuggestionChip } from '@/components/layout/SuggestionChip';
 import { AIToolsMarquee } from '@/components/landing/AIToolsMarquee';
+import { AnimatedFeatureBento } from '@/components/landing/AnimatedFeatureBento';
+import { DitherBanner } from '@/components/landing/DitherBanner';
 import { DitherWave } from '@/components/landing/DitherWave';
-import { SpecTransformationInspector } from '@/components/landing/SpecTransformationInspector';
-import { WorkflowSteps } from '@/components/landing/WorkflowSteps';
 import { ProcessingScreen } from '@/components/feedback/ProcessingScreen';
 import { IDEA_SUGGESTIONS } from '@/data/mockProject';
 import { useProject } from '@/context/ProjectContext';
@@ -167,14 +167,18 @@ export function HomePage() {
             <AIToolsMarquee />
           </div>
 
-          {/* Signature Element: Interactive Metamorfosis Inspector */}
-          <div className="mt-16 sm:mt-24">
-            <SpecTransformationInspector />
+          {/* 4 Animated Bento Feature Cards (Persis Rujukan Gambar 1 & 2) */}
+          <div className="mt-14 sm:mt-20">
+            <AnimatedFeatureBento />
           </div>
 
-          {/* Guided Workflow Breakdown: 3 Tangible Steps + Dither Banner */}
-          <div className="mt-8 sm:mt-12">
-            <WorkflowSteps />
+          {/* 1:1 Animated Dither Wave Banner matching user's Image 1 */}
+          <div className="max-w-5xl mx-auto mt-2 sm:mt-6 pb-12">
+            <DitherBanner
+              title="Buat proyek pertamamu"
+              buttonText="Buat proyek pertama"
+              to="/new"
+            />
           </div>
         </div>
       </section>

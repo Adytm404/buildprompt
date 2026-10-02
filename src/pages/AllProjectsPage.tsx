@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
+  ArrowRight,
   ChevronDown,
   Copy,
   FolderPlus,
@@ -27,52 +28,175 @@ function projectHref(project: Project): string {
   return `/project/${project.id}/interview`;
 }
 
-// Visual mock thumbnail matching Image 1
-function ProjectThumbnail({ project }: { project: Project }) {
+function ProjectSchematic({ project }: { project: Project }) {
   const isPos = /(kasir|warung|pos|toko|retail)/i.test(project.name + project.idea);
   const isBooking = /(booking|barber|salon|jadwal)/i.test(project.name + project.idea);
   const isFinance = /(keuangan|finansial|catatan|budget)/i.test(project.name + project.idea);
 
-  const grad = isPos
-    ? 'from-rose-950/60 via-pink-900/30 to-[#12131C]'
-    : isBooking
-      ? 'from-indigo-950/60 via-purple-900/30 to-[#12131C]'
-      : isFinance
-        ? 'from-cyan-950/60 via-sky-900/30 to-[#12131C]'
-        : 'from-fuchsia-950/60 via-violet-900/30 to-[#12131C]';
+  if (isPos) {
+    return (
+      <div className="flex items-center justify-center gap-2.5 w-full px-3">
+        {/* Mini POS Register Window */}
+        <div className="relative w-24 rounded-lg border border-purple-400/40 bg-purple-950/40 p-2 shadow-inner">
+          <div className="flex items-center justify-between border-b border-purple-400/20 pb-1 mb-1.5">
+            <span className="text-[8px] font-mono font-bold text-purple-300">POS / KASIR</span>
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          </div>
+          <div className="space-y-1">
+            <div className="h-1.5 w-full rounded-sm bg-white/20" />
+            <div className="h-1.5 w-3/4 rounded-sm bg-white/15" />
+            <div className="flex justify-between items-center pt-0.5 border-t border-purple-500/20">
+              <span className="text-[7px] text-purple-300 font-mono">TOTAL</span>
+              <span className="text-[7px] text-white font-mono font-bold">Rp --</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Sync indicator */}
+        <div className="flex flex-col items-center">
+          <span className="text-[8px] font-mono text-purple-400/60">&gt;&gt;</span>
+          <span className="text-[7px] font-mono text-purple-300/40">DB</span>
+        </div>
+
+        {/* Mini SQLite Table Card */}
+        <div className="w-20 rounded-lg border border-white/20 bg-black/40 p-2 text-[7px] font-mono space-y-1">
+          <div className="text-purple-300 font-bold border-b border-white/10 pb-0.5">stok_sqlite</div>
+          <div className="text-emerald-400">auto-sync ✓</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isBooking) {
+    return (
+      <div className="flex items-center justify-center gap-2.5 w-full px-3">
+        {/* Mini Schedule Calendar */}
+        <div className="w-24 rounded-lg border border-indigo-400/40 bg-indigo-950/40 p-2">
+          <div className="flex items-center justify-between border-b border-indigo-400/20 pb-1 mb-1.5">
+            <span className="text-[8px] font-mono font-bold text-indigo-300">JADWAL</span>
+            <span className="text-[7px] text-white/40">Hari ini</span>
+          </div>
+          <div className="grid grid-cols-2 gap-1 text-[7px] font-mono">
+            <span className="rounded bg-white/5 p-0.5 text-center text-white/40">10:00</span>
+            <span className="rounded bg-purple-500/30 border border-purple-400/50 p-0.5 text-center text-purple-200 font-bold animate-pulse">
+              11:00
+            </span>
+          </div>
+        </div>
+
+        <div className="flex flex-col items-center">
+          <span className="text-[8px] font-mono text-indigo-400/60">&gt;&gt;</span>
+        </div>
+
+        {/* Mini Kapster Card */}
+        <div className="w-20 rounded-lg border border-white/20 bg-black/40 p-2 text-[7px] font-mono space-y-1">
+          <div className="text-indigo-300 font-bold border-b border-white/10 pb-0.5">kapster</div>
+          <div className="text-emerald-400">tersedia ✓</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isFinance) {
+    return (
+      <div className="flex items-center justify-center gap-2.5 w-full px-3">
+        {/* Mini Wallet */}
+        <div className="w-24 rounded-lg border border-cyan-400/40 bg-cyan-950/40 p-2">
+          <div className="flex items-center justify-between border-b border-cyan-400/20 pb-1 mb-1.5">
+            <span className="text-[8px] font-mono font-bold text-cyan-300">SALDO</span>
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          </div>
+          <div className="h-1.5 w-14 rounded bg-white/20 mb-1" />
+          <div className="h-1.5 w-16 rounded bg-cyan-500/30" />
+        </div>
+
+        <div className="flex flex-col items-center">
+          <span className="text-[8px] font-mono text-cyan-400/60">&gt;&gt;</span>
+        </div>
+
+        {/* Mini Sparkline Chart */}
+        <div className="w-20 rounded-lg border border-white/20 bg-black/40 p-2 text-[7px] font-mono flex flex-col justify-between h-14">
+          <span className="text-white/40">arus kas</span>
+          <svg viewBox="0 0 40 15" className="w-full h-3 overflow-visible">
+            <path d="M0 12 L10 10 L20 14 L30 5 L40 2" fill="none" stroke="#38BDF8" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        </div>
+      </div>
+    );
+  }
+
+  // Default Architecture Schematic
+  return (
+    <div className="flex items-center justify-center gap-2.5 w-full px-3">
+      <div className="w-28 rounded-lg border border-purple-400/30 bg-purple-950/30 p-2 font-mono">
+        <div className="flex items-center gap-1 border-b border-white/10 pb-1 mb-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-white/40" />
+          <span className="h-1.5 w-1.5 rounded-full bg-white/40" />
+          <span className="text-[7px] text-purple-300 ml-1">PRD Spec</span>
+        </div>
+        <div className="space-y-1">
+          <div className="h-1.5 w-full rounded bg-white/20" />
+          <div className="h-1.5 w-2/3 rounded bg-white/15" />
+        </div>
+      </div>
+      <div className="w-18 rounded-lg border border-white/15 bg-black/40 p-2 text-[7px] font-mono text-white/50">
+        <div>Next.js 15</div>
+        <div className="text-purple-300">SQLite</div>
+      </div>
+    </div>
+  );
+}
+
+// Visual mock thumbnail with 16:9 ratio, blueprint grid, and quick action hover
+function ProjectThumbnail({ project }: { project: Project }) {
+  const isGenerated = project.status === 'generated';
 
   return (
-    <div
-      className={`relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br ${grad} p-4 transition-transform duration-300 group-hover:scale-[1.02] shadow-lg flex flex-col justify-between`}
-    >
-      {/* Mini Mock Browser Bar */}
-      <div className="flex items-center justify-between">
+    <div className="relative aspect-[16/9] w-full overflow-hidden rounded-[18px] border border-white/10 bg-[#0E0B1A] transition-all duration-300 group-hover:scale-[1.02] group-hover:border-purple-400/40 shadow-lg flex flex-col justify-between">
+      {/* Blueprint Dotted Background Grid */}
+      <div
+        className="absolute inset-0 opacity-20 pointer-events-none"
+        style={{
+          backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.3) 1px, transparent 1px)',
+          backgroundSize: '12px 12px',
+        }}
+      />
+
+      {/* Top Bar: Browser Dots + Status Badge */}
+      <div className="relative z-10 flex items-center justify-between p-2.5 sm:p-3 border-b border-white/10 bg-black/25">
         <div className="flex items-center gap-1.5 opacity-60">
-          <span className="h-2 w-2 rounded-full bg-white/40" />
-          <span className="h-2 w-2 rounded-full bg-white/40" />
-          <span className="h-2 w-2 rounded-full bg-white/40" />
+          <span className="h-1.5 w-1.5 rounded-full bg-white/40" />
+          <span className="h-1.5 w-1.5 rounded-full bg-white/40" />
+          <span className="h-1.5 w-1.5 rounded-full bg-white/40" />
         </div>
         <span
-          className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider border ${
-            project.status === 'generated'
-              ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
-              : 'border-pink-500/30 bg-pink-500/10 text-pink-400'
+          className={`rounded-full px-2 py-0.5 text-[9px] font-bold font-compact uppercase tracking-wider border ${
+            isGenerated
+              ? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-300'
+              : 'border-pink-500/30 bg-pink-500/15 text-pink-300'
           }`}
         >
-          {project.status === 'generated' ? 'PRD Siap' : 'Draf'}
+          {isGenerated ? 'PRD Siap' : 'Draf'}
         </span>
       </div>
 
-      {/* Mini Mock Layout Center */}
-      <div className="my-auto py-2 text-center">
-        <p className="font-mono text-[11px] font-bold text-white/90 truncate tracking-tight">{project.name}</p>
-        <p className="mt-1 text-[10px] text-white/50 truncate max-w-[200px] mx-auto">{project.badge}</p>
+      {/* Center: Dynamic Animated Schematic Wireframe Illustration! */}
+      <div className="relative z-10 flex-1 flex items-center justify-center py-1">
+        <ProjectSchematic project={project} />
       </div>
 
-      {/* Mini Mock Footer Bar */}
-      <div className="flex items-center justify-between border-t border-white/10 pt-2 text-[10px] text-white/40">
-        <span>{project.completeness}% Siap</span>
-        <span className="truncate max-w-[100px]">{formatRelativeTime(project.updatedAt)}</span>
+      {/* Bottom Bar: Stack & Date */}
+      <div className="relative z-10 flex items-center justify-between border-t border-white/10 bg-black/25 px-3 py-1.5 text-[10px] text-white/40 font-compact">
+        <span className="text-purple-300/80 font-mono">Next.js + SQLite</span>
+        <span className="truncate">{formatRelativeTime(project.updatedAt)}</span>
+      </div>
+
+      {/* Hover Quick Action Overlay */}
+      <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-xs font-semibold text-black shadow-xl transform translate-y-1 group-hover:translate-y-0 transition-transform">
+          <span>{isGenerated ? 'Buka Prompt PRD' : 'Lanjut Wawancara'}</span>
+          <ArrowRight size={13} strokeWidth={2.5} />
+        </span>
       </div>
     </div>
   );
