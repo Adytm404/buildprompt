@@ -11,6 +11,7 @@ import { ShareProjectModal } from '@/components/project/ShareProjectModal';
 import { Progress } from '@/components/ui/Progress';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useToast } from '@/components/ui/ToastProvider';
+import { useAuth } from '@/context/AuthContext';
 import { useProject } from '@/context/ProjectContext';
 import { formatRelativeTime } from '@/lib/utils';
 import type { Project } from '@/types';
@@ -157,6 +158,7 @@ const ProjectCard = forwardRef<HTMLDivElement, ProjectCardProps>(function Projec
 
 export function ProjectsPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { projects, loading: projectsLoading, createProject, renameProject, duplicateProject, deleteProject } =
     useProject();
   const { toast } = useToast();
@@ -178,6 +180,26 @@ export function ProjectsPage() {
 
   const handleQuickSubmit = async () => {
     if (!quickIdea.trim()) return;
+    if (user?.plan === 'free') {
+      if (user.dailyUsed >= user.dailyLimit) {
+        toast({
+          title: 'Kuota Harian Habis',
+          description: `Kuota harian Anda untuk paket Gratis sudah habis (${user.dailyUsed}/${user.dailyLimit} hari ini). Upgrade ke Pro untuk akses tanpa batas.`,
+          variant: 'error',
+        });
+        navigate('/dashboard/pricing');
+        return;
+      }
+      if (user.monthlyUsed >= user.monthlyLimit) {
+        toast({
+          title: 'Kuota Bulanan Habis',
+          description: `Kuota bulanan Anda untuk paket Gratis sudah habis (${user.monthlyUsed}/${user.monthlyLimit} bulan ini). Upgrade ke Pro untuk akses tanpa batas.`,
+          variant: 'error',
+        });
+        navigate('/dashboard/pricing');
+        return;
+      }
+    }
     try {
       const project = await createProject(quickIdea.trim());
       navigate(`/dashboard/project/${project.id}/interview`);
@@ -187,6 +209,9 @@ export function ProjectsPage() {
         description: error instanceof Error ? error.message : 'Terjadi kesalahan.',
         variant: 'error',
       });
+      if (error instanceof Error && error.message.toLowerCase().includes('kuota')) {
+        navigate('/dashboard/pricing');
+      }
     }
   };
 
@@ -285,6 +310,16 @@ export function ProjectsPage() {
             transition={{ duration: 0.5, delay: 0.16 }}
             className="mt-8 w-full max-w-2xl text-left"
           >
+            {user?.plan === 'free' && user.dailyUsed >= user.dailyLimit ? (
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-2.5 text-xs text-rose-200">
+                <span>
+                  Kuota gratis hari ini telah digunakan (<strong>{user.dailyUsed}/{user.dailyLimit}</strong>).
+                </span>
+                <Link to="/dashboard/pricing" className="font-semibold text-rose-300 hover:text-white underline">
+                  Upgrade ke Pro untuk kuota tanpa batas →
+                </Link>
+              </div>
+            ) : null}
             <AIComposer
               value={quickIdea}
               onChange={setQuickIdea}
@@ -371,7 +406,18 @@ export function ProjectsPage() {
                 </Link>
                 <button
                   type="button"
-                  onClick={() => navigate('/new')}
+                  onClick={() => {
+                    if (user?.plan === 'free' && user.dailyUsed >= user.dailyLimit) {
+                      toast({
+                        title: 'Kuota Harian Habis',
+                        description: `Kuota harian Anda untuk paket Gratis sudah habis (${user.dailyUsed}/${user.dailyLimit} hari ini). Upgrade ke Pro untuk akses tanpa batas.`,
+                        variant: 'error',
+                      });
+                      navigate('/dashboard/pricing');
+                      return;
+                    }
+                    navigate('/new');
+                  }}
                   className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold text-black transition hover:bg-white/90 active:scale-95 shadow-sm"
                 >
                   <Plus size={13} strokeWidth={2.5} />

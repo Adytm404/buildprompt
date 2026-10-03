@@ -55,6 +55,7 @@ func (h *Handler) currentUser(c *fiber.Ctx) (*models.User, error) {
 		}
 		return nil, err
 	}
+	h.syncUserQuotaAndPlan(&user)
 	return &user, nil
 }
 

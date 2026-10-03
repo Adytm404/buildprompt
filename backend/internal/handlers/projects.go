@@ -97,6 +97,16 @@ func (h *Handler) CreateProject(c *fiber.Ctx) error {
 		return badRequest(c, "Ide proyek wajib diisi.")
 	}
 
+	// Enforce active project storage limit for free tier
+	if err := h.checkProjectStorageLimit(user); err != nil {
+		return err
+	}
+
+	// Enforce daily & monthly generation budget for free tier
+	if err := h.checkQuotaAvailable(user); err != nil {
+		return err
+	}
+
 	project := models.Project{
 		ID:           models.NewID("proj"),
 		UserID:       user.ID,
@@ -112,6 +122,10 @@ func (h *Handler) CreateProject(c *fiber.Ctx) error {
 	if err := h.DB.Create(&project).Error; err != nil {
 		return fail(c, fiber.StatusInternalServerError, "Gagal membuat proyek.")
 	}
+
+	// Consume generation quota for creating project
+	_ = h.consumeQuota(user, project.ID, "project_create")
+
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"project": toProjectDTO(&project)})
 }
 
@@ -258,6 +272,17 @@ func (h *Handler) DuplicateProject(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+
+	// Enforce active project storage limit for free tier
+	if err := h.checkProjectStorageLimit(user); err != nil {
+		return err
+	}
+
+	// Enforce daily & monthly generation budget for free tier
+	if err := h.checkQuotaAvailable(user); err != nil {
+		return err
+	}
+
 	now := time.Now()
 	copyProject := models.Project{
 		ID:            models.NewID("proj"),
@@ -282,6 +307,9 @@ func (h *Handler) DuplicateProject(c *fiber.Ctx) error {
 	if err := h.DB.Create(&copyProject).Error; err != nil {
 		return fail(c, fiber.StatusInternalServerError, "Gagal menduplikasi proyek.")
 	}
+
+	_ = h.consumeQuota(user, copyProject.ID, "project_duplicate")
+
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"project": toProjectDTO(&copyProject)})
 }
 

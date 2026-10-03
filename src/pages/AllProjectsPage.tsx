@@ -20,6 +20,7 @@ import { SidebarLayout } from '@/components/layout/SidebarLayout';
 import { Modal } from '@/components/ui/Modal';
 import { ShareProjectModal } from '@/components/project/ShareProjectModal';
 import { useToast } from '@/components/ui/ToastProvider';
+import { useAuth } from '@/context/AuthContext';
 import { useProject } from '@/context/ProjectContext';
 import { formatDate, formatRelativeTime } from '@/lib/utils';
 import { getProjectTechStack } from '@/components/project/TechLogos';
@@ -232,6 +233,7 @@ const Image1ProjectCard = forwardRef<HTMLDivElement, Image1CardProps>(function I
 
 export function AllProjectsPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { projects, loading: projectsLoading, renameProject, duplicateProject, deleteProject } = useProject();
   const { toast } = useToast();
 
@@ -325,7 +327,29 @@ export function AllProjectsPage() {
             {/* New project blue pill button (Gambar 1) */}
             <button
               type="button"
-              onClick={() => navigate('/new')}
+              onClick={() => {
+                if (user?.plan === 'free') {
+                  if (user.dailyUsed >= user.dailyLimit) {
+                    toast({
+                      title: 'Kuota Harian Habis',
+                      description: `Kuota harian Anda untuk paket Gratis sudah habis (${user.dailyUsed}/${user.dailyLimit} hari ini). Upgrade ke Pro untuk akses tanpa batas.`,
+                      variant: 'error',
+                    });
+                    navigate('/dashboard/pricing');
+                    return;
+                  }
+                  if (projects.length >= 5) {
+                    toast({
+                      title: 'Batas Proyek Tercapai',
+                      description: 'Paket Gratis maksimal menyimpan 5 proyek aktif. Hapus proyek lama atau upgrade ke Pro.',
+                      variant: 'error',
+                    });
+                    navigate('/dashboard/pricing');
+                    return;
+                  }
+                }
+                navigate('/new');
+              }}
               className="inline-flex items-center gap-1.5 rounded-full bg-[#2563EB] hover:bg-[#1D4ED8] text-white px-4 py-1.5 text-xs font-semibold shadow-md active:scale-95 transition"
             >
               <Plus size={14} strokeWidth={2.5} />
@@ -422,7 +446,29 @@ export function AllProjectsPage() {
               action={
                 <button
                   type="button"
-                  onClick={() => navigate('/new')}
+                  onClick={() => {
+                    if (user?.plan === 'free') {
+                      if (user.dailyUsed >= user.dailyLimit) {
+                        toast({
+                          title: 'Kuota Harian Habis',
+                          description: `Kuota harian Anda untuk paket Gratis sudah habis (${user.dailyUsed}/${user.dailyLimit} hari ini). Upgrade ke Pro untuk akses tanpa batas.`,
+                          variant: 'error',
+                        });
+                        navigate('/dashboard/pricing');
+                        return;
+                      }
+                      if (projects.length >= 5) {
+                        toast({
+                          title: 'Batas Proyek Tercapai',
+                          description: 'Paket Gratis maksimal menyimpan 5 proyek aktif. Hapus proyek lama atau upgrade ke Pro.',
+                          variant: 'error',
+                        });
+                        navigate('/dashboard/pricing');
+                        return;
+                      }
+                    }
+                    navigate('/new');
+                  }}
                   className="inline-flex items-center gap-2 rounded-full bg-[#2563EB] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#1D4ED8] active:scale-95 shadow-md"
                 >
                   <Plus size={15} strokeWidth={2.5} />

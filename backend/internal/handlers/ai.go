@@ -110,8 +110,26 @@ func (h *Handler) GeneratePRD(c *fiber.Ctx) error {
 		return err
 	}
 
-	if err := h.consumeQuota(user, project.ID, "prd"); err != nil {
-		return err
+	// Check if this is an initial generation or a regeneration
+	if strings.TrimSpace(project.PRDPrompt) != "" {
+		// Regeneration: enforce max 1 revision per document on free tier
+		if err := h.checkRegenerationLimit(user, project.ID); err != nil {
+			return err
+		}
+		_ = h.DB.Create(&models.UsageLog{
+			UserID:    user.ID,
+			ProjectID: project.ID,
+			Kind:      "prd_regen",
+			Model:     h.Cfg.AIModel,
+		})
+	} else {
+		// Initial generation for this project
+		_ = h.DB.Create(&models.UsageLog{
+			UserID:    user.ID,
+			ProjectID: project.ID,
+			Kind:      "prd_initial",
+			Model:     h.Cfg.AIModel,
+		})
 	}
 
 	req := buildPRDRequest(project, body.Target, body.Structured)

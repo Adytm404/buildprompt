@@ -182,13 +182,28 @@ export function AppSidebar({
               <Sparkles size={12} className="text-pink-400" />
               {user ? (user.plan === 'free' ? 'Paket Gratis' : user.plan === 'pro_monthly' ? 'Paket Pro Bulanan' : 'Paket Pro 3 Bulan') : 'Studio AI'}
             </span>
-            <span className="text-[10px] font-mono text-purple-300 font-bold">
-              {user?.plan === 'free' ? '1x / hari' : user ? 'Unlimited' : 'Aktif'}
+            <span
+              className={cn(
+                'text-[10px] font-mono font-bold',
+                user?.plan === 'free' && user.dailyUsed >= user.dailyLimit
+                  ? 'text-rose-400'
+                  : 'text-purple-300',
+              )}
+            >
+              {user?.plan === 'free'
+                ? `${user.dailyUsed}/${user.dailyLimit} hari ini`
+                : user
+                  ? 'Unlimited'
+                  : 'Aktif'}
             </span>
           </div>
           <div className="mt-1 flex items-center justify-between text-[10px]">
             <span className="text-white/40">
-              {user?.plan === 'free' ? 'Maks. 5x / bulan' : user ? 'Bebas Kuota' : 'DeepSeek v4.1 Siap'}
+              {user?.plan === 'free'
+                ? `${user.monthlyUsed}/${user.monthlyLimit} bulan ini`
+                : user
+                  ? 'Bebas Kuota'
+                  : 'DeepSeek v4.1 Siap'}
             </span>
             <Link
               to="/dashboard/pricing"

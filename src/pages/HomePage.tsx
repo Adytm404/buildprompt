@@ -13,11 +13,13 @@ import { ProcessingScreen } from '@/components/feedback/ProcessingScreen';
 import { IDEA_SUGGESTIONS } from '@/data/mockProject';
 import { useAuth } from '@/context/AuthContext';
 import { useProject } from '@/context/ProjectContext';
+import { useToast } from '@/components/ui/ToastProvider';
 
 export function HomePage() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { createProject } = useProject();
+  const { toast } = useToast();
   const [idea, setIdea] = useState('');
   const [details, setDetails] = useState('');
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -31,6 +33,26 @@ export function HomePage() {
       navigate('/login?redirect=%2Fnew');
       return;
     }
+    if (user?.plan === 'free') {
+      if (user.dailyUsed >= user.dailyLimit) {
+        toast({
+          title: 'Kuota Harian Habis',
+          description: `Kuota harian Anda untuk paket Gratis sudah habis (${user.dailyUsed}/${user.dailyLimit} hari ini). Upgrade ke Pro untuk akses tanpa batas.`,
+          variant: 'error',
+        });
+        navigate('/dashboard/pricing');
+        return;
+      }
+      if (user.monthlyUsed >= user.monthlyLimit) {
+        toast({
+          title: 'Kuota Bulanan Habis',
+          description: `Kuota bulanan Anda untuk paket Gratis sudah habis (${user.monthlyUsed}/${user.monthlyLimit} bulan ini). Upgrade ke Pro untuk akses tanpa batas.`,
+          variant: 'error',
+        });
+        navigate('/dashboard/pricing');
+        return;
+      }
+    }
     pendingRef.current = combined;
     setSubmitting(true);
   };
@@ -39,9 +61,14 @@ export function HomePage() {
     try {
       const project = await createProject(pendingRef.current);
       navigate(`/dashboard/project/${project.id}/interview`, { replace: true });
-    } catch {
+    } catch (error) {
       setSubmitting(false);
-      navigate('/login?redirect=%2Fnew');
+      toast({
+        title: 'Gagal membuat proyek',
+        description: error instanceof Error ? error.message : 'Terjadi kesalahan pada pembuatan proyek.',
+        variant: 'error',
+      });
+      navigate('/dashboard/pricing');
     }
   };
 

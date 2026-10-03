@@ -77,13 +77,16 @@ export function PromptPage() {
         updateProject(project.id, { prdPrompt: full, status: 'generated', completeness: 100 });
       } catch (caught) {
         if (caught instanceof ApiError && caught.status === 0 && caught.message.includes('dibatalkan')) return;
+        const msg = caught instanceof Error ? caught.message : 'Gagal menghubungi server.';
+        if (msg.includes('Batas regenerasi') || msg.includes('Kuota')) {
+          setError(`${msg} Silakan upgrade ke paket Pro untuk regenerasi tanpa batas.`);
+          return;
+        }
         const local = buildPrdPrompt(project, targetValue);
         setPrompt(local);
         updateProject(project.id, { prdPrompt: local, status: 'generated', completeness: 100 });
         setError(
-          `${
-            caught instanceof Error ? caught.message : 'Gagal menghubungi server.'
-          } Untuk sementara kami menampilkan PRD versi lokal yang tetap bisa disalin dan diunduh.`,
+          `${msg} Untuk sementara kami menampilkan PRD versi lokal yang tetap bisa disalin dan diunduh.`,
         );
       } finally {
         setStreaming(false);
