@@ -142,3 +142,64 @@ func (d *DuitkuClient) CreateInvoice(ctx context.Context, req CreateInvoiceReque
 
 	return &res, nil
 }
+
+// CheckTransactionResponse is the response from Duitku transactionStatus API.
+type CheckTransactionResponse struct {
+	MerchantOrderID string `json:"merchantOrderId"`
+	Reference       string `json:"reference"`
+	Amount          string `json:"amount"`
+	Fee             string `json:"fee"`
+	StatusCode      string `json:"statusCode"`
+	StatusMessage   string `json:"statusMessage"`
+}
+
+// CheckTransaction queries Duitku transactionStatus API to verify payment state.
+func (d *DuitkuClient) CheckTransaction(ctx context.Context, merchantOrderID string) (*CheckTransactionResponse, error) {
+	mac := hmac.New(sha256.New, []byte(d.cfg.DuitkuAPIKey))
+	mac.Write([]byte(d.cfg.DuitkuMerchantCode + merchantOrderID))
+	signature := hex.EncodeToString(mac.Sum(nil))
+
+	reqBody := map[string]string{
+		"merchantCode":    d.cfg.DuitkuMerchantCode,
+		"merchantOrderId": merchantOrderID,
+		"signature":       signature,
+	}
+
+	payload, err := json.Marshal(reqBody)
+	if err != nil {
+		return nil, fmt.Errorf("marshal check request: %w", err)
+	}
+
+	url := "https://passport.duitku.com/webapi/api/merchant/transactionStatus"
+	if strings.Contains(strings.ToLower(d.cfg.DuitkuBaseURL), "sandbox") {
+		url = "https://sandbox.duitku.com/webapi/api/merchant/transactionStatus"
+	}
+
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(payload))
+	if err != nil {
+		return nil, fmt.Errorf("create check http request: %w", err)
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	resp, err := d.httpClient.Do(httpReq)
+	if err != nil {
+		return nil, fmt.Errorf("duitku check request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, err := io.ReadAll(io.LimitReader(resp.Body, 64*1024))
+	if err != nil {
+		return nil, fmt.Errorf("read check response: %w", err)
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("duitku check api error (%d): %s", resp.StatusCode, string(bodyBytes))
+	}
+
+	var res CheckTransactionResponse
+	if err := json.Unmarshal(bodyBytes, &res); err != nil {
+		return nil, fmt.Errorf("unmarshal check response: %w", err)
+	}
+
+	return &res, nil
+}

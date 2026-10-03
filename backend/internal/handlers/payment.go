@@ -114,6 +114,64 @@ func (h *Handler) CreatePaymentInvoice(c *fiber.Ctx) error {
 	})
 }
 
+// applyTransactionSuccess marks a transaction as paid and upgrades the user's plan.
+func (h *Handler) applyTransactionSuccess(tx *models.Transaction, paymentCode string) {
+	if tx.Status == models.PaymentSuccess {
+		return
+	}
+	now := time.Now()
+	tx.Status = models.PaymentSuccess
+	if paymentCode != "" {
+		tx.PaymentMethod = paymentCode
+	}
+	tx.PaidAt = &now
+	_ = h.DB.Save(tx)
+
+	var user models.User
+	if err := h.DB.First(&user, "id = ?", tx.UserID).Error; err == nil {
+		var expires time.Time
+		if tx.Plan == models.PlanProQuarterly {
+			expires = now.AddDate(0, 3, 0)
+			user.Plan = models.PlanProQuarterly
+		} else {
+			expires = now.AddDate(0, 1, 0)
+			user.Plan = models.PlanProMonthly
+		}
+		user.DailyLimit = 999999
+		user.MonthlyLimit = 999999
+		user.PlanStartedAt = &now
+		user.PlanExpiresAt = &expires
+		_ = h.DB.Save(&user)
+		log.Printf("payment: user %s (%s) successfully upgraded to %s via order %s", user.ID, user.Email, user.Plan, tx.MerchantOrderID)
+	}
+}
+
+// SyncUserPendingPayments checks any recent pending payments with Duitku and applies upgrades.
+func (h *Handler) SyncUserPendingPayments(user *models.User) {
+	if user.Plan != models.PlanFree {
+		return
+	}
+	var pendingTxs []models.Transaction
+	since := time.Now().Add(-24 * time.Hour)
+	if err := h.DB.Where("user_id = ? AND status = ? AND created_at > ?", user.ID, models.PaymentPending, since).Find(&pendingTxs).Error; err != nil {
+		return
+	}
+
+	for _, tx := range pendingTxs {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		check, err := h.Duitku.CheckTransaction(ctx, tx.MerchantOrderID)
+		cancel()
+		if err == nil && check != nil && check.StatusCode == "00" {
+			h.applyTransactionSuccess(&tx, "")
+			// Reload user
+			_ = h.DB.First(user, "id = ?", user.ID)
+			if user.Plan != models.PlanFree {
+				break
+			}
+		}
+	}
+}
+
 // DuitkuCallback receives HTTP POST callbacks (x-www-form-urlencoded) from Duitku server.
 func (h *Handler) DuitkuCallback(c *fiber.Ctx) error {
 	merchantCode := c.FormValue("merchantCode")
@@ -142,33 +200,8 @@ func (h *Handler) DuitkuCallback(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).SendString("Order Not Found")
 	}
 
-	now := time.Now()
 	if resultCode == "00" {
-		if tx.Status != models.PaymentSuccess {
-			tx.Status = models.PaymentSuccess
-			tx.PaymentMethod = paymentCode
-			tx.PaidAt = &now
-			_ = h.DB.Save(&tx)
-
-			// Upgrade user account
-			var user models.User
-			if err := h.DB.First(&user, "id = ?", tx.UserID).Error; err == nil {
-				var expires time.Time
-				if tx.Plan == models.PlanProQuarterly {
-					expires = now.AddDate(0, 3, 0)
-					user.Plan = models.PlanProQuarterly
-				} else {
-					expires = now.AddDate(0, 1, 0)
-					user.Plan = models.PlanProMonthly
-				}
-				user.DailyLimit = 999999
-				user.MonthlyLimit = 999999
-				user.PlanStartedAt = &now
-				user.PlanExpiresAt = &expires
-				_ = h.DB.Save(&user)
-				log.Printf("payment callback: user %s successfully upgraded to %s", user.ID, user.Plan)
-			}
-		}
+		h.applyTransactionSuccess(&tx, paymentCode)
 	} else {
 		tx.Status = models.PaymentFailed
 		_ = h.DB.Save(&tx)
@@ -188,6 +221,21 @@ func (h *Handler) GetPaymentStatus(c *fiber.Ctx) error {
 	var tx models.Transaction
 	if err := h.DB.First(&tx, "merchant_order_id = ? AND user_id = ?", orderID, user.ID).Error; err != nil {
 		return notFound(c, "Transaksi tidak ditemukan.")
+	}
+
+	// Proactively check with Duitku if still pending
+	if tx.Status == models.PaymentPending {
+		ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
+		defer cancel()
+		check, checkErr := h.Duitku.CheckTransaction(ctx, tx.MerchantOrderID)
+		if checkErr == nil && check != nil {
+			if check.StatusCode == "00" {
+				h.applyTransactionSuccess(&tx, "")
+			} else if check.StatusCode == "02" {
+				tx.Status = models.PaymentExpired
+				_ = h.DB.Save(&tx)
+			}
+		}
 	}
 
 	return c.JSON(fiber.Map{

@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { Check, ShieldCheck, X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/ToastProvider';
 import { api } from '@/lib/api';
@@ -15,18 +15,56 @@ export function CheckoutModal({ tier, onClose }: CheckoutModalProps) {
   const { refresh } = useAuth();
   const { toast } = useToast();
   const [processing, setProcessing] = useState(false);
+  const pollTimerRef = useRef<number | null>(null);
+
+  const stopPolling = () => {
+    if (pollTimerRef.current !== null) {
+      window.clearInterval(pollTimerRef.current);
+      pollTimerRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    return () => stopPolling();
+  }, []);
 
   if (!tier) return null;
+
+  const startPolling = (orderId: string) => {
+    stopPolling();
+    pollTimerRef.current = window.setInterval(async () => {
+      try {
+        const check = await api.getPaymentStatus(orderId);
+        if (check.status === 'success') {
+          stopPolling();
+          toast({
+            title: 'Pembayaran Diterima!',
+            description: `Selamat, akun Anda telah aktif pada paket ${tier.name}.`,
+            variant: 'success',
+          });
+          await refresh();
+          onClose();
+        }
+      } catch {
+        // keep polling
+      }
+    }, 3500);
+  };
 
   const handlePay = async () => {
     setProcessing(true);
     try {
       const invoice = await api.createPaymentInvoice(tier.id);
+      startPolling(invoice.orderId);
 
       if (typeof window !== 'undefined' && window.checkout?.process) {
         window.checkout.process(invoice.reference, {
           defaultLanguage: 'id',
           successEvent: async () => {
+            stopPolling();
+            try {
+              await api.getPaymentStatus(invoice.orderId);
+            } catch {}
             toast({
               title: 'Pembayaran Diterima!',
               description: `Selamat, akun Anda telah aktif pada paket ${tier.name}.`,
@@ -43,6 +81,7 @@ export function CheckoutModal({ tier, onClose }: CheckoutModalProps) {
             });
           },
           errorEvent: () => {
+            stopPolling();
             toast({
               title: 'Pembayaran Gagal',
               description: 'Transaksi tidak dapat diselesaikan atau dibatalkan.',
@@ -54,6 +93,7 @@ export function CheckoutModal({ tier, onClose }: CheckoutModalProps) {
             try {
               const check = await api.getPaymentStatus(invoice.orderId);
               if (check.status === 'success') {
+                stopPolling();
                 toast({
                   title: 'Pembayaran Sukses!',
                   description: `Akun Anda telah diaktifkan ke paket ${tier.name}.`,
@@ -78,9 +118,11 @@ export function CheckoutModal({ tier, onClose }: CheckoutModalProps) {
         });
         setProcessing(false);
       } else {
+        stopPolling();
         throw new Error('Referensi pembayaran tidak ditemukan.');
       }
     } catch (error) {
+      stopPolling();
       toast({
         title: 'Gagal memproses pembayaran',
         description: error instanceof Error ? error.message : 'Terjadi kesalahan.',
