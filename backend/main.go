@@ -71,17 +71,17 @@ func main() {
 	registerRoutes(app, h, jwtManager)
 
 	go func() {
-		if err := app.Listen(":" + cfg.Port); err != nil {
-			log.Fatalf("fatal: listen: %v", err)
-		}
+		quit := make(chan os.Signal, 1)
+		signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+		<-quit
+		log.Println("shutting down buildprompt API...")
+		_ = app.ShutdownWithTimeout(5 * time.Second)
 	}()
-	log.Printf("buildprompt API listening on http://localhost:%s", cfg.Port)
 
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-	log.Println("shutting down...")
-	_ = app.ShutdownWithTimeout(5 * time.Second)
+	log.Printf("buildprompt API listening on http://localhost:%s", cfg.Port)
+	if err := app.Listen(":" + cfg.Port); err != nil {
+		log.Fatalf("server stopped with error: %v", err)
+	}
 }
 
 func registerRoutes(app *fiber.App, h *handlers.Handler, jwt *auth.Manager) {
