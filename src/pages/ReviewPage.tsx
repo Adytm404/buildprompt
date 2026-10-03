@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ProjectNotFound } from '@/components/feedback/ProjectNotFound';
 import { SidebarLayout } from '@/components/layout/SidebarLayout';
-import { DocumentViewer } from '@/components/result/DocumentViewer';
 import { CompletenessCard } from '@/components/project/CompletenessCard';
 import { FeatureAccordion } from '@/components/project/FeatureAccordion';
 import { FeatureCard } from '@/components/project/FeatureCard';
@@ -17,8 +16,7 @@ import { Segmented } from '@/components/ui/Segmented';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useProject } from '@/context/ProjectContext';
 import { projectReviewNavItems } from '@/data/navigation';
-import { buildResult } from '@/lib/blueprint';
-import { slugify } from '@/lib/utils';
+import { parsePrdToResult } from '@/lib/prdParser';
 import { computeCompleteness } from '@/services/interviewService';
 import type { Answers, ApiEndpoint } from '@/types';
 
@@ -57,7 +55,7 @@ export function ReviewPage() {
     if (s) setActive(s);
   }, [searchParams]);
 
-  const blueprint = useMemo(() => (project ? buildResult(project) : undefined), [project]);
+  const blueprint = useMemo(() => (project ? parsePrdToResult(project) : undefined), [project]);
   const navItems = useMemo(() => (project ? projectReviewNavItems(project.id) : []), [project]);
 
   if (!project && projectsLoading) {
@@ -94,6 +92,8 @@ export function ReviewPage() {
     'Pengaturan',
   ];
 
+  const hasPrd = Boolean(project.prdPrompt && project.prdPrompt.trim().length > 0);
+
   return (
     <SidebarLayout
       projectName={project.name}
@@ -106,9 +106,9 @@ export function ReviewPage() {
       <div className="mx-auto max-w-5xl px-5 py-8 sm:px-8 sm:py-10 text-white">
         <ProjectHeader
           projectName={project.name}
-          badge={blueprint.badge}
+          badge={hasPrd ? 'Visualisasi PRD' : blueprint.badge}
           description={project.description}
-          primaryLabel="Buat PRD Prompt"
+          primaryLabel={hasPrd ? 'Buka Prompt PRD' : 'Buat PRD Prompt'}
           primaryIcon={<Sparkles size={16} />}
           onPrimary={() => navigate(`/dashboard/project/${project.id}/prompt`)}
           onEdit={() => setDrawerOpen(true)}
@@ -327,14 +327,6 @@ export function ReviewPage() {
                 </div>
               )}
             </div>
-          ) : null}
-
-          {active === 'prd' ? (
-            <DocumentViewer
-              title={`PRD — ${project.name}`}
-              sections={blueprint.prd}
-              fileName={`${slugify(project.name)}-prd.md`}
-            />
           ) : null}
 
           {active === 'stack' ? (

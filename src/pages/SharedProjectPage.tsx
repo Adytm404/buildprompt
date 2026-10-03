@@ -13,7 +13,8 @@ import { useAuth } from '@/context/AuthContext';
 import { useProject } from '@/context/ProjectContext';
 import { useToast } from '@/components/ui/ToastProvider';
 import { api, ApiError } from '@/lib/api';
-import { buildPrdPrompt, buildResult, PROMPT_TARGETS } from '@/lib/blueprint';
+import { buildPrdPrompt, PROMPT_TARGETS } from '@/lib/blueprint';
+import { parsePrdToResult } from '@/lib/prdParser';
 import { formatDate } from '@/lib/utils';
 import type { Project } from '@/types';
 
@@ -37,7 +38,7 @@ export function SharedProjectPage() {
   const abortRef = useRef<AbortController | null>(null);
   const generatedRef = useRef<string | null>(null);
 
-  const blueprint = useMemo(() => (project ? buildResult(project) : null), [project]);
+  const blueprint = useMemo(() => (project ? parsePrdToResult(project) : null), [project]);
   const techStack = useMemo(
     () => (project ? getProjectTechStack(project.answers?.platform as string | undefined) : []),
     [project],

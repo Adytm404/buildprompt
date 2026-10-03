@@ -4,7 +4,6 @@ import {
   Cpu,
   CreditCard,
   Database,
-  FileText,
   Layers,
   LayoutDashboard,
   LayoutGrid,
@@ -42,7 +41,6 @@ export function projectReviewNavItems(projectId: string): NavItem[] {
     { id: 'pages', label: 'Halaman', icon: Layers },
     { id: 'database', label: 'Basis Data', icon: Database },
     { id: 'api', label: 'API', icon: Network },
-    { id: 'prd', label: 'PRD', icon: FileText },
     { id: 'stack', label: 'Teknologi', icon: Cpu },
     { id: 'prompt', label: 'Prompt PRD', icon: SquareTerminal, to: `/dashboard/project/${projectId}/prompt` },
   ];
@@ -56,7 +54,6 @@ export function projectPromptNavItems(projectId: string): NavItem[] {
     { id: 'pages', label: 'Halaman', icon: Layers, to: `/dashboard/project/${projectId}/review?section=pages` },
     { id: 'database', label: 'Basis Data', icon: Database, to: `/dashboard/project/${projectId}/review?section=database` },
     { id: 'api', label: 'API', icon: Network, to: `/dashboard/project/${projectId}/review?section=api` },
-    { id: 'prd', label: 'PRD', icon: FileText, to: `/dashboard/project/${projectId}/review?section=prd` },
     { id: 'stack', label: 'Teknologi', icon: Cpu, to: `/dashboard/project/${projectId}/review?section=stack` },
   ];
 }
