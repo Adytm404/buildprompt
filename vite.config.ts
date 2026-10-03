@@ -4,15 +4,7 @@ import path from 'node:path';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const baseUrl = env.VITE_AI_BASE_URL || 'http://localhost:20128/v1';
-
-  let defaultTarget = 'http://localhost:20128';
-  try {
-    defaultTarget = new URL(baseUrl).origin;
-  } catch {
-    defaultTarget = 'http://localhost:20128';
-  }
-  const proxyTarget = env.VITE_AI_PROXY_TARGET || defaultTarget;
+  const apiProxyTarget = env.VITE_API_PROXY_TARGET || 'http://localhost:8080';
 
   return {
     plugins: [react()],
@@ -23,11 +15,11 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       proxy: {
-        '/ai': {
-          target: proxyTarget,
+        // Go API (Fiber) — auth, projects, AI generation, public sharing.
+        '/api': {
+          target: apiProxyTarget,
           changeOrigin: true,
           secure: false,
-          rewrite: (requestPath) => requestPath.replace(/^\/ai/, ''),
         },
       },
     },

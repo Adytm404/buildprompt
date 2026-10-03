@@ -18,18 +18,25 @@ export function CheckoutModal({ tier, onClose }: CheckoutModalProps) {
 
   if (!tier) return null;
 
-  const handlePay = () => {
+  const handlePay = async () => {
     setProcessing(true);
-    window.setTimeout(() => {
-      upgradePlan(tier.id);
-      setProcessing(false);
+    try {
+      await upgradePlan(tier.id);
       toast({
         title: 'Pembayaran Berhasil!',
         description: `Selamat, akun Anda telah di-upgrade ke paket ${tier.name}.`,
         variant: 'success',
       });
       onClose();
-    }, 800);
+    } catch (error) {
+      toast({
+        title: 'Gagal memproses pembayaran',
+        description: error instanceof Error ? error.message : 'Terjadi kesalahan.',
+        variant: 'error',
+      });
+    } finally {
+      setProcessing(false);
+    }
   };
 
   return (

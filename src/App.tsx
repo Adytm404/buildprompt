@@ -41,12 +41,26 @@ export default function App() {
         <Route path="/new" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/share/:projectId" element={<SharedProjectPage />} />
+        <Route path="/share/:token" element={<SharedProjectPage />} />
 
         {/* Dashboard Workspace Routes (Semua halaman ber-sidebar berada di bawah /dashboard) */}
         <Route path="/dashboard" element={<Navigate to="/dashboard/projects" replace />} />
-        <Route path="/dashboard/projects" element={<ProjectsPage />} />
-        <Route path="/dashboard/projects/all" element={<AllProjectsPage />} />
+        <Route
+          path="/dashboard/projects"
+          element={
+            <ProtectedRoute>
+              <ProjectsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/projects/all"
+          element={
+            <ProtectedRoute>
+              <AllProjectsPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/dashboard/pricing"
           element={
@@ -55,9 +69,30 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="/dashboard/project/:projectId/interview" element={<InterviewPage />} />
-        <Route path="/dashboard/project/:projectId/review" element={<ReviewPage />} />
-        <Route path="/dashboard/project/:projectId/prompt" element={<PromptPage />} />
+        <Route
+          path="/dashboard/project/:projectId/interview"
+          element={
+            <ProtectedRoute>
+              <InterviewPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/project/:projectId/review"
+          element={
+            <ProtectedRoute>
+              <ReviewPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/project/:projectId/prompt"
+          element={
+            <ProtectedRoute>
+              <PromptPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/dashboard/project/:projectId/result" element={<ResultRedirect />} />
 
         {/* Backward Compatibility Redirects */}

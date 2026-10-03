@@ -1,16 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import {
-  Check,
-  Copy,
-  Database,
-  FileCode,
-  Globe,
-  Layers,
-  Network,
-  Plus,
-  Sparkles,
-} from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { Check, Copy, Database, FileCode, Globe, Layers, Network, Plus, Sparkles } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AppLogo } from '@/components/layout/AppLogo';
 import { DitherWave } from '@/components/landing/DitherWave';
@@ -19,63 +9,125 @@ import { PromptDocument } from '@/components/result/PromptDocument';
 import { FeatureAccordion } from '@/components/project/FeatureAccordion';
 import { getProjectTechStack } from '@/components/project/TechLogos';
 import { useClipboard } from '@/hooks/useClipboard';
+import { useAuth } from '@/context/AuthContext';
 import { useProject } from '@/context/ProjectContext';
 import { useToast } from '@/components/ui/ToastProvider';
-import { buildResult, PROMPT_TARGETS } from '@/lib/blueprint';
-import { localPrdPrompt } from '@/services/ai/aiPrd';
-import { decodeProjectPayload } from '@/lib/sharePayload';
+import { api, ApiError } from '@/lib/api';
+import { buildPrdPrompt, buildResult, PROMPT_TARGETS } from '@/lib/blueprint';
 import { formatDate } from '@/lib/utils';
 import type { Project } from '@/types';
 
 export function SharedProjectPage() {
-  const { projectId } = useParams();
+  const { token } = useParams();
   const navigate = useNavigate();
-  const { getProject, createProject } = useProject();
+  const { isAuthenticated } = useAuth();
+  const { createProject } = useProject();
   const { copied, copy } = useClipboard();
   const { toast } = useToast();
 
   const [activeTab, setActiveTab] = useState<'prompt' | 'spec'>('prompt');
   const [target, setTarget] = useState<string>(PROMPT_TARGETS[0]);
-  const [resolvedProject, setResolvedProject] = useState<Project | null>(null);
+  const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [prompt, setPrompt] = useState('');
+  const [streaming, setStreaming] = useState(false);
+  const [cloning, setCloning] = useState(false);
 
-  useEffect(() => {
-    // 1. Try local storage lookup
-    if (projectId) {
-      const local = getProject(projectId);
-      if (local) {
-        setResolvedProject(local);
-        setLoading(false);
-        return;
-      }
-    }
+  const abortRef = useRef<AbortController | null>(null);
+  const generatedRef = useRef<string | null>(null);
 
-    // 2. Try URL Hash payload
-    if (typeof window !== 'undefined' && window.location.hash.startsWith('#d=')) {
-      const encoded = window.location.hash.slice(3);
-      const decoded = decodeProjectPayload(encoded);
-      if (decoded) {
-        setResolvedProject(decoded);
-        setLoading(false);
-        return;
-      }
-    }
-
-    setLoading(false);
-  }, [projectId, getProject]);
-
-  const project = resolvedProject;
   const blueprint = useMemo(() => (project ? buildResult(project) : null), [project]);
   const techStack = useMemo(
     () => (project ? getProjectTechStack(project.answers?.platform as string | undefined) : []),
     [project],
   );
 
-  const prdPrompt = useMemo(() => {
-    if (!project) return '';
-    if (project.prdPrompt) return project.prdPrompt;
-    return localPrdPrompt(project, target);
-  }, [project, target]);
+  // Load the shared project from the public API (no authentication required).
+  useEffect(() => {
+    if (!token) return;
+    let active = true;
+    setLoading(true);
+    api
+      .publicShare(token)
+      .then(({ project: shared }) => {
+        if (!active) return;
+        setProject(shared);
+        setLoadError(null);
+      })
+      .catch((error) => {
+        if (!active) return;
+        setProject(null);
+        setLoadError(error instanceof Error ? error.message : 'Tautan tidak valid.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [token]);
+
+  const generatePrompt = useCallback(
+    async (targetValue: string, current: Project, structured: unknown) => {
+      if (!token) return;
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      setStreaming(true);
+      setPrompt('');
+      let accumulated = '';
+      try {
+        const full = await api.publicPrd(token, {
+          target: targetValue,
+          structured,
+          signal: controller.signal,
+          onDelta: (delta) => {
+            accumulated += delta;
+            setPrompt(accumulated);
+          },
+        });
+        setPrompt((prev) => (prev ? prev : full));
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 0) return;
+        const local = buildPrdPrompt(current, targetValue);
+        setPrompt(local);
+      } finally {
+        setStreaming(false);
+      }
+    },
+    [token],
+  );
+
+  // Generate the PRD once the project and blueprint are available.
+  useEffect(() => {
+    if (!project || !blueprint) return;
+    if (generatedRef.current === project.id) return;
+    generatedRef.current = project.id;
+
+    if (project.prdPrompt && project.prdPrompt.trim().length > 0) {
+      setPrompt(project.prdPrompt);
+      return;
+    }
+
+    const structured = {
+      platform: blueprint.platform,
+      badge: blueprint.badge,
+      users: blueprint.users,
+      roles: blueprint.roles,
+      hasData: blueprint.hasData,
+      loginRequired: blueprint.loginRequired,
+      designStyle: blueprint.designStyle,
+      deployment: blueprint.deployment,
+      stack: blueprint.stack,
+      features: blueprint.features,
+      pages: blueprint.pages,
+      database: blueprint.database,
+      api: blueprint.api,
+    };
+    void generatePrompt(PROMPT_TARGETS[0], project, structured);
+  }, [project, blueprint, generatePrompt]);
 
   if (loading) {
     return (
@@ -92,7 +144,7 @@ export function SharedProjectPage() {
     return (
       <ProjectNotFound
         title="Dokumen PRD Tidak Ditemukan"
-        description="Tautan ini mungkin sudah kadaluarsa atau tidak lengkap. Pastikan URL yang dibagikan sudah benar."
+        description={loadError ?? 'Tautan ini mungkin sudah kedaluwarsa atau tidak lengkap.'}
       />
     );
   }
@@ -106,14 +158,30 @@ export function SharedProjectPage() {
     });
   };
 
-  const handleClone = () => {
-    const cloned = createProject(project.idea);
-    toast({
-      title: 'Disimpan ke Studio',
-      description: `Proyek "${project.name}" berhasil ditambahkan ke akun Anda.`,
-      variant: 'success',
-    });
-    navigate(`/dashboard/project/${cloned.id}/prompt`);
+  const handleClone = async () => {
+    if (!isAuthenticated) {
+      const redirect = encodeURIComponent(`/share/${token}`);
+      navigate(`/login?redirect=${redirect}`);
+      return;
+    }
+    setCloning(true);
+    try {
+      const cloned = await createProject(project.idea);
+      toast({
+        title: 'Disimpan ke Studio',
+        description: `Proyek "${project.name}" berhasil ditambahkan ke akun Anda.`,
+        variant: 'success',
+      });
+      navigate(`/dashboard/project/${cloned.id}/interview`);
+    } catch (error) {
+      toast({
+        title: 'Gagal menyimpan',
+        description: error instanceof Error ? error.message : 'Terjadi kesalahan.',
+        variant: 'error',
+      });
+    } finally {
+      setCloning(false);
+    }
   };
 
   return (
@@ -142,10 +210,11 @@ export function SharedProjectPage() {
             <button
               type="button"
               onClick={handleClone}
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-purple-500/40 bg-purple-500/15 px-3.5 py-1.5 text-xs font-semibold text-purple-200 transition hover:bg-purple-500/25 active:scale-95"
+              disabled={cloning}
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-purple-500/40 bg-purple-500/15 px-3.5 py-1.5 text-xs font-semibold text-purple-200 transition hover:bg-purple-500/25 active:scale-95 disabled:opacity-60"
             >
               <Sparkles size={13} />
-              <span>Salin ke Studio Saya</span>
+              <span>{cloning ? 'Menyimpan...' : 'Salin ke Studio Saya'}</span>
             </button>
 
             <Link
@@ -176,9 +245,7 @@ export function SharedProjectPage() {
               <h1 className="text-2xl sm:text-4xl font-bold font-rounded tracking-tight text-white">
                 {project.name}
               </h1>
-              <p className="mt-2 text-sm text-white/65 max-w-2xl leading-relaxed">
-                {blueprint.summary}
-              </p>
+              <p className="mt-2 text-sm text-white/65 max-w-2xl leading-relaxed">{blueprint.summary}</p>
             </div>
 
             {/* Official Tech Stack Dock */}
@@ -193,9 +260,7 @@ export function SharedProjectPage() {
                     className="flex flex-col items-center justify-center w-12 h-12 rounded-xl border border-white/5 bg-white/[0.03] p-1"
                     title={tech.name}
                   >
-                    <div className="h-6 w-6 flex items-center justify-center shrink-0">
-                      {tech.icon}
-                    </div>
+                    <div className="h-6 w-6 flex items-center justify-center shrink-0">{tech.icon}</div>
                     <span className="text-[8px] font-mono text-white/70 mt-0.5 truncate max-w-full">
                       {tech.name}
                     </span>
@@ -254,11 +319,31 @@ export function SharedProjectPage() {
               <PromptDocument
                 title="Prompt Spesifikasi PRD Siap Pakai"
                 description="Salin prompt ini langsung ke agen AI koding (Cursor, Claude Code, Codex, Windsurf) untuk mulai membangun aplikasi."
-                prompt={prdPrompt}
+                prompt={prompt}
                 targets={PROMPT_TARGETS}
                 target={target}
-                onTargetChange={setTarget}
+                onTargetChange={(next) => {
+                  setTarget(next);
+                  if (blueprint) {
+                    void generatePrompt(next, project, {
+                      platform: blueprint.platform,
+                      badge: blueprint.badge,
+                      users: blueprint.users,
+                      roles: blueprint.roles,
+                      hasData: blueprint.hasData,
+                      loginRequired: blueprint.loginRequired,
+                      designStyle: blueprint.designStyle,
+                      deployment: blueprint.deployment,
+                      stack: blueprint.stack,
+                      features: blueprint.features,
+                      pages: blueprint.pages,
+                      database: blueprint.database,
+                      api: blueprint.api,
+                    });
+                  }
+                }}
                 fileName={`${project.name.toLowerCase().replace(/\s+/g, '-')}-prd.md`}
+                streaming={streaming}
               />
             </motion.div>
           ) : (
@@ -365,7 +450,8 @@ export function SharedProjectPage() {
               Ingin membuat PRD seperti ini untuk ide Anda?
             </h2>
             <p className="mt-2 text-xs sm:text-sm text-white/60 leading-relaxed">
-              Mulai gratis dengan kuota harian. AI kami akan memandu wawancara teknis dan menyusun spesifikasi lengkap dalam hitungan detik.
+              Mulai gratis dengan kuota harian. AI kami akan memandu wawancara teknis dan menyusun spesifikasi
+              lengkap dalam hitungan detik.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <Link

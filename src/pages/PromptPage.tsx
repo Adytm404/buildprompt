@@ -9,17 +9,15 @@ import { PromptDocument } from '@/components/result/PromptDocument';
 import { Button } from '@/components/ui/Button';
 import { useProject } from '@/context/ProjectContext';
 import { projectPromptNavItems } from '@/data/navigation';
-import { buildResult, PROMPT_TARGETS } from '@/lib/blueprint';
-import { AIError } from '@/lib/aiClient';
-import { describeAIError } from '@/lib/aiError';
+import { api, ApiError } from '@/lib/api';
+import { buildPrdPrompt, buildResult, PROMPT_TARGETS } from '@/lib/blueprint';
 import { slugify } from '@/lib/utils';
 import { computeCompleteness } from '@/services/interviewService';
-import { localPrdPrompt, streamPrdPrompt } from '@/services/ai/aiPrd';
 import type { Answers } from '@/types';
 
 export function PromptPage() {
   const { projectId } = useParams();
-  const { getProject, updateProject } = useProject();
+  const { getProject, loading: projectsLoading, updateProject } = useProject();
   const project = projectId ? getProject(projectId) : undefined;
 
   const [target, setTarget] = useState<string>(PROMPT_TARGETS[0]);
@@ -46,9 +44,29 @@ export function PromptPage() {
       setPrompt('');
       let accumulated = '';
 
+      const structured = result
+        ? {
+            platform: result.platform,
+            badge: result.badge,
+            users: result.users,
+            roles: result.roles,
+            hasData: result.hasData,
+            loginRequired: result.loginRequired,
+            designStyle: result.designStyle,
+            deployment: result.deployment,
+            stack: result.stack,
+            features: result.features,
+            pages: result.pages,
+            database: result.database,
+            api: result.api,
+          }
+        : undefined;
+
       try {
-        const full = await streamPrdPrompt(project, {
+        const full = await api.generatePrd({
+          projectId: project.id,
           target: targetValue,
+          structured,
           signal: controller.signal,
           onDelta: (delta) => {
             accumulated += delta;
@@ -58,18 +76,20 @@ export function PromptPage() {
         setPrompt(full);
         updateProject(project.id, { prdPrompt: full, status: 'generated', completeness: 100 });
       } catch (caught) {
-        if (caught instanceof AIError && caught.code === 'aborted') return;
-        const local = localPrdPrompt(project, targetValue);
+        if (caught instanceof ApiError && caught.status === 0 && caught.message.includes('dibatalkan')) return;
+        const local = buildPrdPrompt(project, targetValue);
         setPrompt(local);
         updateProject(project.id, { prdPrompt: local, status: 'generated', completeness: 100 });
         setError(
-          `${describeAIError(caught)} Untuk sementara kami menampilkan PRD versi lokal yang tetap bisa di-copy dan di-download.`,
+          `${
+            caught instanceof Error ? caught.message : 'Gagal menghubungi server.'
+          } Untuk sementara kami menampilkan PRD versi lokal yang tetap bisa disalin dan diunduh.`,
         );
       } finally {
         setStreaming(false);
       }
     },
-    [project, updateProject],
+    [project, result, updateProject],
   );
 
   const generateRef = useRef(generate);
@@ -88,6 +108,17 @@ export function PromptPage() {
     }
     void generateRef.current(PROMPT_TARGETS[0]);
   }, [project, updateProject]);
+
+  if (!project && projectsLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#0A0B0F] text-white">
+        <div className="flex items-center gap-3 text-sm text-white/60">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-purple-500 border-t-transparent" />
+          <span>Memuat proyek...</span>
+        </div>
+      </div>
+    );
+  }
 
   if (!project || !result) {
     return <ProjectNotFound />;

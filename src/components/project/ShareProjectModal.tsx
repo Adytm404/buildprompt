@@ -1,8 +1,8 @@
-import { Check, Copy, ExternalLink, Globe, Share2 } from 'lucide-react';
-import { useMemo } from 'react';
+import { Check, Copy, ExternalLink, Globe, Loader2, Share2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { useClipboard } from '@/hooks/useClipboard';
-import { buildShareUrl } from '@/lib/sharePayload';
+import { api } from '@/lib/api';
 import { getProjectTechStack } from '@/components/project/TechLogos';
 import type { Project } from '@/types';
 
@@ -14,11 +14,33 @@ interface ShareProjectModalProps {
 
 export function ShareProjectModal({ project, open, onClose }: ShareProjectModalProps) {
   const { copied, copy } = useClipboard();
+  const [shareUrl, setShareUrl] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const shareUrl = useMemo(() => {
-    if (!project) return '';
-    return buildShareUrl(project);
-  }, [project]);
+  useEffect(() => {
+    if (!open || !project) return;
+    let active = true;
+    setLoading(true);
+    setError(null);
+    setShareUrl('');
+    api
+      .createShare(project.id)
+      .then(({ token }) => {
+        if (!active) return;
+        setShareUrl(`${window.location.origin}/share/${token}`);
+      })
+      .catch((caught) => {
+        if (!active) return;
+        setError(caught instanceof Error ? caught.message : 'Gagal membuat tautan berbagi.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [open, project]);
 
   if (!project) return null;
 
@@ -75,7 +97,9 @@ export function ShareProjectModal({ project, open, onClose }: ShareProjectModalP
         <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs text-emerald-300 flex items-start gap-2.5">
           <Globe size={16} className="shrink-0 mt-0.5 text-emerald-400" />
           <div className="leading-relaxed">
-            <strong className="font-semibold">Tautan Terbuka Publik:</strong> Siapa saja yang memiliki tautan ini dapat membaca spesifikasi teknis, skema basis data, REST API, dan menyalin prompt AI koding tanpa harus membuat akun atau masuk.
+            <strong className="font-semibold">Tautan Terbuka Publik:</strong> Siapa saja yang memiliki tautan ini
+            dapat membaca spesifikasi teknis, skema basis data, REST API, dan menyalin prompt AI koding tanpa harus
+            membuat akun atau masuk.
           </div>
         </div>
 
@@ -88,33 +112,43 @@ export function ShareProjectModal({ project, open, onClose }: ShareProjectModalP
             <input
               type="text"
               readOnly
-              value={shareUrl}
+              value={loading ? 'Membuat tautan...' : shareUrl}
               onFocus={(e) => e.target.select()}
               className="flex-1 rounded-xl border border-white/15 bg-black/40 px-3.5 py-2.5 text-xs font-mono text-white/90 outline-none focus:border-purple-400 select-all"
             />
             <button
               type="button"
+              disabled={loading || !shareUrl}
               onClick={() => copy(shareUrl)}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 px-4 py-2.5 text-xs font-semibold text-white shadow-md transition active:scale-95 shrink-0"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 px-4 py-2.5 text-xs font-semibold text-white shadow-md transition active:scale-95 shrink-0 disabled:opacity-50"
             >
               {copied ? <Check size={14} /> : <Copy size={14} />}
               <span>{copied ? 'Tersalin!' : 'Salin'}</span>
             </button>
           </div>
+          {error ? <p className="mt-1.5 text-[11px] text-rose-400">{error}</p> : null}
         </div>
 
         {/* External Preview Button */}
         <div className="pt-2 flex justify-between items-center border-t border-white/10">
           <span className="text-[11px] text-white/40">Ingin melihat tampilan publiknya?</span>
-          <a
-            href={shareUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-purple-300 hover:text-white transition"
-          >
-            <span>Buka Pratinjau Publik</span>
-            <ExternalLink size={12} />
-          </a>
+          {loading ? (
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-white/40">
+              <Loader2 size={12} className="animate-spin" />
+              Menyiapkan...
+            </span>
+          ) : (
+            <a
+              href={shareUrl || '#'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-purple-300 hover:text-white transition disabled:opacity-50"
+              aria-disabled={!shareUrl}
+            >
+              <span>Buka Pratinjau Publik</span>
+              <ExternalLink size={12} />
+            </a>
+          )}
         </div>
       </div>
     </Modal>

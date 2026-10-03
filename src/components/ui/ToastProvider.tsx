@@ -1,9 +1,9 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { CheckCircle2, Info, X } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Info, X } from 'lucide-react';
 import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
 import { uid } from '@/lib/utils';
 
-export type ToastVariant = 'default' | 'success';
+export type ToastVariant = 'default' | 'success' | 'error';
 
 export interface ToastInput {
   title: string;
@@ -53,8 +53,18 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               className="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-2xl border border-line bg-surface/95 px-4 py-3 shadow-lift backdrop-blur"
               role="status"
             >
-              <span className="mt-0.5 text-accent">
-                {item.variant === 'success' ? <CheckCircle2 size={18} /> : <Info size={18} />}
+              <span
+                className={
+                  item.variant === 'error' ? 'mt-0.5 text-red-500' : 'mt-0.5 text-accent'
+                }
+              >
+                {item.variant === 'error' ? (
+                  <AlertCircle size={18} />
+                ) : item.variant === 'success' ? (
+                  <CheckCircle2 size={18} />
+                ) : (
+                  <Info size={18} />
+                )}
               </span>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-ink">{item.title}</p>

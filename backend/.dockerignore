@@ -1,0 +1,10 @@
+.git
+.env
+.env.*
+!.env.example
+server
+server.exe
+*.exe
+tmp/
+bin/
+*.log

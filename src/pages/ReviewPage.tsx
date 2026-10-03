@@ -43,7 +43,7 @@ export function ReviewPage() {
   const { projectId } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { getProject, updateProject } = useProject();
+  const { getProject, loading: projectsLoading, updateProject } = useProject();
   const project = projectId ? getProject(projectId) : undefined;
 
   const initialSection = searchParams.get('section') ?? 'overview';
@@ -59,6 +59,17 @@ export function ReviewPage() {
 
   const blueprint = useMemo(() => (project ? buildResult(project) : undefined), [project]);
   const navItems = useMemo(() => (project ? projectReviewNavItems(project.id) : []), [project]);
+
+  if (!project && projectsLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#0A0B0F] text-white">
+        <div className="flex items-center gap-3 text-sm text-white/60">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-purple-500 border-t-transparent" />
+          <span>Memuat proyek...</span>
+        </div>
+      </div>
+    );
+  }
 
   if (!project || !blueprint) {
     return <ProjectNotFound />;

@@ -11,8 +11,18 @@ export function getQuestions(idea: string): Question[] {
   return buildQuestions(idea);
 }
 
+export function isQuestionVisible(question: Question, answers: Answers): boolean {
+  if (question.showIf) return question.showIf(answers);
+  if (question.visibleWhen) {
+    const value = answers[question.visibleWhen.id];
+    const candidates = Array.isArray(value) ? value : typeof value === 'string' ? [value] : [];
+    return candidates.some((candidate) => question.visibleWhen!.in.includes(candidate));
+  }
+  return true;
+}
+
 export function filterVisible(questions: Question[], answers: Answers): Question[] {
-  return questions.filter((question) => !question.showIf || question.showIf(answers));
+  return questions.filter((question) => isQuestionVisible(question, answers));
 }
 
 export function getVisibleQuestions(idea: string, answers: Answers): Question[] {

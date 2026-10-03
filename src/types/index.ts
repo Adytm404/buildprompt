@@ -27,6 +27,8 @@ export interface Question {
   columns?: 1 | 2;
   source?: 'ai' | 'local';
   showIf?: (answers: Answers) => boolean;
+  /** Serializable visibility rule (backend-friendly replacement for showIf). */
+  visibleWhen?: { id: string; in: string[] };
 }
 
 export interface IdeaAnalysis {

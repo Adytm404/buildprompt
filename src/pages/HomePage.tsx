@@ -11,10 +11,12 @@ import { DitherBanner } from '@/components/landing/DitherBanner';
 import { DitherWave } from '@/components/landing/DitherWave';
 import { ProcessingScreen } from '@/components/feedback/ProcessingScreen';
 import { IDEA_SUGGESTIONS } from '@/data/mockProject';
+import { useAuth } from '@/context/AuthContext';
 import { useProject } from '@/context/ProjectContext';
 
 export function HomePage() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const { createProject } = useProject();
   const [idea, setIdea] = useState('');
   const [details, setDetails] = useState('');
@@ -25,18 +27,27 @@ export function HomePage() {
   const submit = () => {
     const combined = [idea.trim(), details.trim()].filter(Boolean).join('\n\n');
     if (!combined) return;
+    if (!isAuthenticated) {
+      navigate('/login?redirect=%2Fnew');
+      return;
+    }
     pendingRef.current = combined;
     setSubmitting(true);
   };
 
-  const finish = () => {
-    const project = createProject(pendingRef.current);
-    navigate(`/dashboard/project/${project.id}/interview`, { replace: true });
+  const finish = async () => {
+    try {
+      const project = await createProject(pendingRef.current);
+      navigate(`/dashboard/project/${project.id}/interview`, { replace: true });
+    } catch {
+      setSubmitting(false);
+      navigate('/login?redirect=%2Fnew');
+    }
   };
 
   if (submitting) {
     return (
-      <ProcessingScreen steps={['Menganalisis idemu...']} onComplete={finish} />
+      <ProcessingScreen steps={['Menganalisis idemu...']} onComplete={() => void finish()} />
     );
   }
 

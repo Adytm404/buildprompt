@@ -232,7 +232,7 @@ const Image1ProjectCard = forwardRef<HTMLDivElement, Image1CardProps>(function I
 
 export function AllProjectsPage() {
   const navigate = useNavigate();
-  const { projects, renameProject, duplicateProject, deleteProject } = useProject();
+  const { projects, loading: projectsLoading, renameProject, duplicateProject, deleteProject } = useProject();
   const { toast } = useToast();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -257,23 +257,49 @@ export function AllProjectsPage() {
     });
   };
 
-  const handleRename = () => {
+  const handleRename = async () => {
     if (!renameTarget) return;
-    renameProject(renameTarget.id, draftName);
+    const target = renameTarget;
     setRenameTarget(null);
-    toast({ title: 'Proyek diubah namanya', variant: 'success' });
+    try {
+      await renameProject(target.id, draftName);
+      toast({ title: 'Proyek diubah namanya', variant: 'success' });
+    } catch (error) {
+      toast({
+        title: 'Gagal mengubah nama',
+        description: error instanceof Error ? error.message : 'Terjadi kesalahan.',
+        variant: 'error',
+      });
+    }
   };
 
-  const handleDuplicate = (project: Project) => {
-    duplicateProject(project.id);
-    toast({ title: 'Proyek diduplikasi', description: `${project.name} (salinan)`, variant: 'success' });
+  const handleDuplicate = async (project: Project) => {
+    try {
+      await duplicateProject(project.id);
+      toast({ title: 'Proyek diduplikasi', description: `${project.name} (salinan)`, variant: 'success' });
+    } catch (error) {
+      toast({
+        title: 'Gagal menduplikasi',
+        description: error instanceof Error ? error.message : 'Terjadi kesalahan.',
+        variant: 'error',
+      });
+    }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteTarget) return;
-    deleteProject(deleteTarget.id);
+    const target = deleteTarget;
     setDeleteTarget(null);
-    toast({ title: 'Proyek dihapus' });
+    try {
+      await deleteProject(target.id);
+      toast({ title: 'Proyek dihapus' });
+    } catch (error) {
+      toast({
+        title: 'Gagal menghapus',
+        description: error instanceof Error ? error.message : 'Terjadi kesalahan.',
+        variant: 'error',
+      });
+    }
   };
 
   return (
@@ -379,7 +405,17 @@ export function AllProjectsPage() {
 
         {/* Projects Grid (Gambar 1) */}
         <div className="mt-8">
-          {filteredProjects.length === 0 ? (
+          {projectsLoading ? (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div key={index} className="space-y-3">
+                  <div className="aspect-[16/9] w-full animate-pulse rounded-[18px] border border-white/10 bg-white/[0.04]" />
+                  <div className="h-4 w-2/3 animate-pulse rounded bg-white/10" />
+                  <div className="h-3 w-1/3 animate-pulse rounded bg-white/[0.06]" />
+                </div>
+              ))}
+            </div>
+          ) : filteredProjects.length === 0 ? (
             <EmptyState
               title="Tidak ada proyek yang ditemukan"
               description="Coba ubah kata kunci pencarian atau buat proyek baru."

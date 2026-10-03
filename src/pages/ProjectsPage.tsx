@@ -157,7 +157,8 @@ const ProjectCard = forwardRef<HTMLDivElement, ProjectCardProps>(function Projec
 
 export function ProjectsPage() {
   const navigate = useNavigate();
-  const { projects, createProject, renameProject, duplicateProject, deleteProject } = useProject();
+  const { projects, loading: projectsLoading, createProject, renameProject, duplicateProject, deleteProject } =
+    useProject();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'generated' | 'draft'>('all');
@@ -175,29 +176,63 @@ export function ProjectsPage() {
     return () => window.clearTimeout(timer);
   }, []);
 
-  const handleQuickSubmit = () => {
+  const handleQuickSubmit = async () => {
     if (!quickIdea.trim()) return;
-    const project = createProject(quickIdea.trim());
-    navigate(`/dashboard/project/${project.id}/interview`);
+    try {
+      const project = await createProject(quickIdea.trim());
+      navigate(`/dashboard/project/${project.id}/interview`);
+    } catch (error) {
+      toast({
+        title: 'Gagal membuat proyek',
+        description: error instanceof Error ? error.message : 'Terjadi kesalahan.',
+        variant: 'error',
+      });
+    }
   };
 
-  const handleRename = () => {
+  const handleRename = async () => {
     if (!renameTarget) return;
-    renameProject(renameTarget.id, draftName);
+    const target = renameTarget;
     setRenameTarget(null);
-    toast({ title: 'Project diubah namanya', variant: 'success' });
+    try {
+      await renameProject(target.id, draftName);
+      toast({ title: 'Project diubah namanya', variant: 'success' });
+    } catch (error) {
+      toast({
+        title: 'Gagal mengubah nama',
+        description: error instanceof Error ? error.message : 'Terjadi kesalahan.',
+        variant: 'error',
+      });
+    }
   };
 
-  const handleDuplicate = (project: Project) => {
-    duplicateProject(project.id);
-    toast({ title: 'Project diduplikasi', description: `${project.name} (copy)`, variant: 'success' });
+  const handleDuplicate = async (project: Project) => {
+    try {
+      await duplicateProject(project.id);
+      toast({ title: 'Project diduplikasi', description: `${project.name} (copy)`, variant: 'success' });
+    } catch (error) {
+      toast({
+        title: 'Gagal menduplikasi',
+        description: error instanceof Error ? error.message : 'Terjadi kesalahan.',
+        variant: 'error',
+      });
+    }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteTarget) return;
-    deleteProject(deleteTarget.id);
+    const target = deleteTarget;
     setDeleteTarget(null);
-    toast({ title: 'Project dihapus' });
+    try {
+      await deleteProject(target.id);
+      toast({ title: 'Project dihapus' });
+    } catch (error) {
+      toast({
+        title: 'Gagal menghapus',
+        description: error instanceof Error ? error.message : 'Terjadi kesalahan.',
+        variant: 'error',
+      });
+    }
   };
 
   const filteredProjects = projects.filter((p) => {
@@ -347,7 +382,7 @@ export function ProjectsPage() {
 
             {/* Cards Grid */}
             <div className="mt-6">
-              {loading ? (
+              {loading || projectsLoading ? (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {Array.from({ length: 4 }).map((_, index) => (
                     <div key={index} className="rounded-2xl border border-white/10 bg-[#14151D] p-5">

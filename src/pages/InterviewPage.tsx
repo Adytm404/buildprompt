@@ -14,8 +14,7 @@ import { TextQuestion } from '@/components/interview/TextQuestion';
 import { LoadingSequence } from '@/components/feedback/LoadingSequence';
 import { useProject } from '@/context/ProjectContext';
 import { projectInterviewNavItems } from '@/data/navigation';
-import { isAIConfigured } from '@/lib/aiConfig';
-import { describeAIError } from '@/lib/aiError';
+import { api } from '@/lib/api';
 import { deriveProjectName, cn } from '@/lib/utils';
 import {
   computeCompletenessFrom,
@@ -24,7 +23,6 @@ import {
   getPreselectedIds,
   isQuestionAnswered,
 } from '@/services/interviewService';
-import { generateFollowUps, generateInterview } from '@/services/ai/aiInterview';
 import type { Answers, Question } from '@/types';
 
 const COMPLETION_STEPS = [
@@ -39,7 +37,7 @@ const LETTERS = 'abcdefghijklmnopqrstuvwxyz';
 export function InterviewPage() {
   const { projectId } = useParams();
   const navigate = useNavigate();
-  const { getProject, saveInterview, completeInterview, updateProject } = useProject();
+  const { getProject, loading: projectsLoading, saveInterview, completeInterview, updateProject } = useProject();
   const project = projectId ? getProject(projectId) : undefined;
 
   const [answers, setAnswers] = useState<Answers>(() => ({ ...(project?.answers ?? {}) }));
@@ -73,15 +71,15 @@ export function InterviewPage() {
       setLoadFailed(false);
       setErrorMessage(null);
       try {
-        const result = await generateInterview(idea);
-        if (!result || result.questions.length === 0) {
-          throw new Error('AI tidak mengembalikan pertanyaan yang valid.');
+        const result = await api.interview(idea);
+        if (!result.questions || result.questions.length === 0) {
+          throw new Error('Server tidak mengembalikan pertanyaan yang valid.');
         }
         setQuestions(result.questions);
         updateProject(projectIdValue, {
           questions: result.questions,
           analysis: result.analysis,
-          aiGenerated: true,
+          aiGenerated: result.source === 'ai',
           currentStep: 0,
           followUpsDone: false,
         });
@@ -89,11 +87,7 @@ export function InterviewPage() {
         setReady(true);
       } catch (error) {
         if (force) setStep(0);
-        setErrorMessage(
-          isAIConfigured()
-            ? describeAIError(error)
-            : 'API key belum diisi. Tambahkan VITE_AI_API_KEY di file .env lalu restart.',
-        );
+        setErrorMessage(error instanceof Error ? error.message : 'Gagal memuat pertanyaan wawancara.');
         setLoadFailed(true);
       }
     },
@@ -146,8 +140,9 @@ export function InterviewPage() {
 
     followUpRef.current = true;
     const ids = questions.map((question) => question.id);
-    generateFollowUps(project.idea, answers, ids)
-      .then((extras) => {
+    api
+      .followUps({ idea: project.idea, answers, existingIds: ids })
+      .then(({ questions: extras }) => {
         const merged = extras.length > 0 ? [...questions, ...extras] : questions;
         if (extras.length > 0) setQuestions(merged);
         updateProject(project.id, { questions: merged, followUpsDone: true });
@@ -281,6 +276,17 @@ export function InterviewPage() {
     await loadQuestions(project.idea, project.id, true);
     setRegenerating(false);
   };
+
+  if (!project && projectsLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#0A0B0F] text-white">
+        <div className="flex items-center gap-3 text-sm text-white/60">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-purple-500 border-t-transparent" />
+          <span>Memuat proyek...</span>
+        </div>
+      </div>
+    );
+  }
 
   if (!project) {
     return <ProjectNotFound title="Wawancara tidak ditemukan" />;

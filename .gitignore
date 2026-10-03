@@ -20,6 +20,7 @@ pnpm-debug.log*
 .vscode/*
 !.vscode/extensions.json
 .idea
+.opencode/
 .DS_Store
 Thumbs.db
 
@@ -29,4 +30,10 @@ Thumbs.db
 
 # test screenshots
 shots*
+
+# go backend artifacts
+backend/server.exe
+backend/server
+backend/bin/
+backend/tmp/
 

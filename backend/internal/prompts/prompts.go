@@ -1,6 +1,8 @@
-import type { Answers, IdeaAnalysis } from '@/types';
+package prompts
 
-const QUESTION_SCHEMA = `{
+import "fmt"
+
+const questionSchema = `{
   "id": "snake_case_unik",
   "type": "single" | "multiple" | "text" | "confirm",
   "label": "teks kecil opsional",
@@ -15,10 +17,11 @@ const QUESTION_SCHEMA = `{
   "options": [
     { "id": "snake_case", "title": "teks pilihan", "description": "opsional", "icon": "Globe", "preselected": false }
   ]
-}`;
+}`
 
-export function interviewSystemPrompt(): string {
-  return `Kamu adalah asisten product manager untuk pengguna awam (non-teknis) di Indonesia.
+// InterviewSystemPrompt instructs the model to produce adaptive interview questions.
+func InterviewSystemPrompt() string {
+	return `Kamu adalah asisten product manager untuk pengguna awam (non-teknis) di Indonesia.
 Tugasmu: memahami ide aplikasi dari bahasa sehari-hari lalu membuat rangkaian pertanyaan interview yang adaptif dan relevan dengan ide tersebut.
 
 ATURAN WAJIB:
@@ -35,7 +38,7 @@ ATURAN WAJIB:
 - Output HANYA JSON valid, tanpa penjelasan, tanpa markdown.
 
 Skema satu pertanyaan:
-${QUESTION_SCHEMA}
+` + questionSchema + `
 
 Format output:
 {
@@ -48,39 +51,50 @@ Format output:
     "notes": "catatan singkat tentang kebutuhan khusus"
   },
   "questions": [ ...daftar pertanyaan... ]
-}`;
+}`
 }
 
-export function interviewUserPrompt(idea: string): string {
-  return `Ide aplikasi dari pengguna:
-"""${idea}"""
+// InterviewUserPrompt wraps the user's raw idea.
+func InterviewUserPrompt(idea string) string {
+	return fmt.Sprintf(`Ide aplikasi dari pengguna:
+"""%s"""
 
-Buat analysis dan daftar pertanyaan interview yang paling relevan untuk ide ini.`;
+Buat analysis dan daftar pertanyaan interview yang paling relevan untuk ide ini.`, idea)
 }
 
-export function followUpSystemPrompt(): string {
-  return `Kamu melanjutkan interview produk untuk pengguna awam di Indonesia.
+// FollowUpSystemPrompt asks for at most two contextual questions.
+func FollowUpSystemPrompt() string {
+	return `Kamu melanjutkan interview produk untuk pengguna awam di Indonesia.
 Berdasarkan ide dan jawaban sebelumnya, buat PALING BANYAK 2 pertanyaan lanjutan yang benar-benar kontekstual dan belum tercakup.
 Semua pertanyaan harus "contextual": true, Bahasa Indonesia sederhana, tanpa istilah teknis.
 Output HANYA JSON valid: { "questions": [ ... ] } tanpa penjelasan.
 Skema satu pertanyaan:
-${QUESTION_SCHEMA}`;
+` + questionSchema
 }
 
-export function followUpUserPrompt(idea: string, answers: Answers, existingIds: string[]): string {
-  return `Ide aplikasi:
-"""${idea}"""
+// FollowUpUserPrompt embeds the current answers and existing ids.
+func FollowUpUserPrompt(idea string, answersJSON string, existingIDs []string) string {
+	ids := ""
+	for i, id := range existingIDs {
+		if i > 0 {
+			ids += ", "
+		}
+		ids += id
+	}
+	return fmt.Sprintf(`Ide aplikasi:
+"""%s"""
 
 Jawaban sejauh ini (JSON):
-${JSON.stringify(answers, null, 2)}
+%s
 
-ID pertanyaan yang sudah ada (jangan diulang): ${existingIds.join(', ')}
+ID pertanyaan yang sudah ada (jangan diulang): %s
 
-Berikan maksimal 2 pertanyaan lanjutan yang relevan. Jika tidak ada yang perlu ditanyakan, kembalikan array kosong.`;
+Berikan maksimal 2 pertanyaan lanjutan yang relevan. Jika tidak ada yang perlu ditanyakan, kembalikan array kosong.`, idea, answersJSON, ids)
 }
 
-export function prdSystemPrompt(): string {
-  return `Kamu adalah senior software architect dan business analyst.
+// PRDSystemPrompt produces a complete technical PRD markdown document.
+func PRDSystemPrompt() string {
+	return `Kamu adalah senior software architect dan business analyst.
 Ubah ide pengguna awam menjadi satu "PRD Prompt" teknis yang lengkap dan langsung bisa diberikan ke AI coding agent.
 
 ATURAN:
@@ -92,33 +106,44 @@ ATURAN:
 - Wajib memuat bagian ini: 1 Ringkasan Produk, 2 Problem, 3 Target Users & Roles, 4 Goals, 5 Platform, 6 Tech Stack, 7 Design/UI Style, 8 Autentikasi & Data, 9 Fitur Utama (dengan subfitur), 10 Halaman, 11 User Flow, 12 Business Rules, 13 Database (tabel + kolom), 14 API (endpoint), 15 UI Requirements, 16 Security, 17 Testing, 18 Definition of Done.
 - ATURAN DEFAULT TECH STACK: Jika pengguna tidak meminta teknologi atau database tertentu, GUNAKAN SELALU default stack: Next.js (App Router, React, TypeScript, Tailwind CSS) untuk frontend & backend, dan SQLite (misalnya menggunakan Prisma ORM atau Drizzle ORM / better-sqlite3) sebagai basis data.
 - Bersikap spesifik: sebutkan nama tabel/kolom, endpoint, dan aturan bisnis yang masuk akal.
-- Jangan menambah komentar di luar dokumen.`;
+- Jangan menambah komentar di luar dokumen.`
 }
 
-export interface PrdPromptContext {
-  projectName: string;
-  idea: string;
-  analysis: IdeaAnalysis | null;
-  answers: Answers;
-  target: string;
-  structured: unknown;
+// PRDContext carries all inputs required to compose the PRD user prompt.
+type PRDContext struct {
+	ProjectName string
+	Idea        string
+	Analysis    string
+	Answers     string
+	Target      string
+	Structured  string
 }
 
-export function prdUserPrompt(context: PrdPromptContext): string {
-  return `Target AI coding: ${context.target}
+// PRDUserPrompt embeds project context and pre-computed structured hints.
+func PRDUserPrompt(ctx PRDContext) string {
+	analysis := ctx.Analysis
+	if analysis == "" {
+		analysis = "{}"
+	}
+	structured := ctx.Structured
+	if structured == "" {
+		structured = "{}"
+	}
+	return fmt.Sprintf(`Target AI coding: %s
 
-Nama project: ${context.projectName}
+Nama project: %s
 Ide asli pengguna:
-"""${context.idea}"""
+"""%s"""
 
 Hasil analisis:
-${JSON.stringify(context.analysis ?? {}, null, 2)}
+%s
 
 Jawaban interview:
-${JSON.stringify(context.answers, null, 2)}
+%s
 
 Data terstruktur yang sudah dihitung sistem (pakai ini sebagai acuan utama, boleh diperkaya):
-${JSON.stringify(context.structured, null, 2)}
+%s
 
-Tulis PRD Prompt markdown lengkap sesuai aturan.`;
+Tulis PRD Prompt markdown lengkap sesuai aturan.`,
+		ctx.Target, ctx.ProjectName, ctx.Idea, analysis, ctx.Answers, structured)
 }

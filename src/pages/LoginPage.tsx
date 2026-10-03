@@ -18,30 +18,35 @@ export function LoginPage() {
   const rawRedirect = searchParams.get('redirect');
   const redirectTarget = rawRedirect ? decodeURIComponent(rawRedirect) : '/dashboard/projects';
 
-  const handleLogin = (e: FormEvent) => {
+  const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
-    if (!email.trim()) return;
+    if (!email.trim() || !password) return;
     setLoading(true);
-    window.setTimeout(() => {
-      setLoading(false);
-      login(email.trim());
+    try {
+      await login(email.trim(), password);
       toast({
         title: 'Berhasil masuk',
         description: 'Selamat datang di buildprompt Studio.',
         variant: 'success',
       });
       navigate(redirectTarget, { replace: true });
-    }, 500);
+    } catch (error) {
+      toast({
+        title: 'Gagal masuk',
+        description: error instanceof Error ? error.message : 'Terjadi kesalahan.',
+        variant: 'error',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleOAuth = (provider: string) => {
-    login(`user_${provider.toLowerCase()}@buildprompt.dev`, `Pengguna ${provider}`);
+  const handleOAuthNotice = () => {
     toast({
-      title: `Masuk dengan ${provider}`,
-      description: `Autentikasi sosial ${provider} berhasil.`,
-      variant: 'success',
+      title: 'Segera hadir',
+      description: 'Masuk dengan Google dan GitHub sedang disiapkan. Gunakan email dan kata sandi untuk sekarang.',
+      variant: 'default',
     });
-    navigate(redirectTarget, { replace: true });
   };
 
   return (
@@ -74,14 +79,15 @@ export function LoginPage() {
             </div>
           )}
 
-          {/* Social Logins */}
+          {/* Social Logins (segera hadir) */}
           <div className="mt-6 space-y-2.5">
             <button
               type="button"
-              onClick={() => handleOAuth('Google')}
-              className="relative flex w-full items-center justify-center gap-3 rounded-full border border-white/15 bg-white/[0.04] py-2.5 px-4 text-xs font-semibold text-white transition hover:bg-white/10 active:scale-[0.99]"
+              onClick={handleOAuthNotice}
+              disabled
+              className="relative flex w-full items-center justify-center gap-3 rounded-full border border-white/10 bg-white/[0.02] py-2.5 px-4 text-xs font-semibold text-white/50 cursor-not-allowed"
             >
-              <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
+              <svg className="h-4 w-4 shrink-0 opacity-60" viewBox="0 0 24 24">
                 <path
                   fill="#EA4335"
                   d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"
@@ -100,18 +106,22 @@ export function LoginPage() {
                 />
               </svg>
               <span>Lanjutkan dengan Google</span>
-              <span className="absolute right-3 rounded-full bg-blue-500/20 px-2 py-0.5 text-[9px] font-semibold text-blue-400">
-                Terakhir digunakan
+              <span className="absolute right-3 rounded-full bg-white/10 px-2 py-0.5 text-[9px] font-semibold text-white/50">
+                Segera hadir
               </span>
             </button>
 
             <button
               type="button"
-              onClick={() => handleOAuth('GitHub')}
-              className="flex w-full items-center justify-center gap-3 rounded-full border border-white/15 bg-white/[0.04] py-2.5 px-4 text-xs font-semibold text-white transition hover:bg-white/10 active:scale-[0.99]"
+              onClick={handleOAuthNotice}
+              disabled
+              className="relative flex w-full items-center justify-center gap-3 rounded-full border border-white/10 bg-white/[0.02] py-2.5 px-4 text-xs font-semibold text-white/50 cursor-not-allowed"
             >
               <Github size={15} />
               <span>Lanjutkan dengan GitHub</span>
+              <span className="absolute right-3 rounded-full bg-white/10 px-2 py-0.5 text-[9px] font-semibold text-white/50">
+                Segera hadir
+              </span>
             </button>
           </div>
 
@@ -161,7 +171,7 @@ export function LoginPage() {
 
             <button
               type="submit"
-              disabled={loading || !email.trim()}
+              disabled={loading || !email.trim() || !password}
               className="w-full rounded-full bg-white py-2.5 text-xs sm:text-sm font-semibold text-black transition hover:bg-white/90 disabled:opacity-50 active:scale-[0.99] shadow-md mt-2"
             >
               {loading ? 'Memproses...' : 'Masuk ke Akun'}
