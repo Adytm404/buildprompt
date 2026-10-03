@@ -33,6 +33,9 @@ shots*
 
 # go backend artifacts
 backend/server.exe
+backend/backend.exe
+backend/*.exe
+*.exe
 backend/server
 backend/bin/
 backend/tmp/

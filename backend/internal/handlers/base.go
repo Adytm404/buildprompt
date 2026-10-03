@@ -10,6 +10,7 @@ import (
 	"github.com/Adytm404/buildprompt/backend/internal/config"
 	"github.com/Adytm404/buildprompt/backend/internal/middleware"
 	"github.com/Adytm404/buildprompt/backend/internal/models"
+	"github.com/Adytm404/buildprompt/backend/internal/payment"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -17,15 +18,16 @@ import (
 
 // Handler bundles every dependency the HTTP handlers need.
 type Handler struct {
-	DB  *gorm.DB
-	Cfg *config.Config
-	AI  *ai.Client
-	JWT *auth.Manager
+	DB     *gorm.DB
+	Cfg    *config.Config
+	AI     *ai.Client
+	JWT    *auth.Manager
+	Duitku *payment.DuitkuClient
 }
 
 // New builds a Handler.
-func New(db *gorm.DB, cfg *config.Config, aiClient *ai.Client, jwt *auth.Manager) *Handler {
-	return &Handler{DB: db, Cfg: cfg, AI: aiClient, JWT: jwt}
+func New(db *gorm.DB, cfg *config.Config, aiClient *ai.Client, jwt *auth.Manager, duitku *payment.DuitkuClient) *Handler {
+	return &Handler{DB: db, Cfg: cfg, AI: aiClient, JWT: jwt, Duitku: duitku}
 }
 
 func fail(c *fiber.Ctx, status int, message string) error {

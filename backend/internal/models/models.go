@@ -81,3 +81,27 @@ type UsageLog struct {
 	Model     string    `gorm:"type:varchar(120)" json:"model"`
 	CreatedAt time.Time `json:"createdAt"`
 }
+
+// Transaction payment statuses.
+const (
+	PaymentPending = "pending"
+	PaymentSuccess = "success"
+	PaymentFailed  = "failed"
+	PaymentExpired = "expired"
+)
+
+// Transaction tracks payment invoices issued via Duitku.
+type Transaction struct {
+	ID              string     `gorm:"primaryKey;type:varchar(48)" json:"id"`
+	UserID          string     `gorm:"type:varchar(48);index;not null" json:"userId"`
+	MerchantOrderID string     `gorm:"type:varchar(64);uniqueIndex;not null" json:"merchantOrderId"`
+	DuitkuReference string     `gorm:"type:varchar(64);index" json:"duitkuReference"`
+	Plan            string     `gorm:"type:varchar(32);not null" json:"plan"`
+	Amount          int        `gorm:"not null" json:"amount"`
+	Status          string     `gorm:"type:varchar(24);not null;default:pending" json:"status"`
+	PaymentMethod   string     `gorm:"type:varchar(32)" json:"paymentMethod,omitempty"`
+	PaymentURL      string     `gorm:"type:text" json:"paymentUrl,omitempty"`
+	PaidAt          *time.Time `json:"paidAt,omitempty"`
+	CreatedAt       time.Time  `json:"createdAt"`
+	UpdatedAt       time.Time  `json:"updatedAt"`
+}

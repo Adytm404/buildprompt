@@ -13,6 +13,7 @@ import (
 	"github.com/Adytm404/buildprompt/backend/internal/database"
 	"github.com/Adytm404/buildprompt/backend/internal/handlers"
 	"github.com/Adytm404/buildprompt/backend/internal/middleware"
+	"github.com/Adytm404/buildprompt/backend/internal/payment"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -35,7 +36,8 @@ func main() {
 		log.Println("warning: AI_API_KEY is empty — PRD/interview will use local fallbacks")
 	}
 	jwtManager := auth.NewManager(cfg.JWTSecret, cfg.JWTTTL)
-	h := handlers.New(db, cfg, aiClient, jwtManager)
+	duitkuClient := payment.NewDuitkuClient(cfg)
+	h := handlers.New(db, cfg, aiClient, jwtManager, duitkuClient)
 
 	app := fiber.New(fiber.Config{
 		AppName:               "buildprompt-api",
@@ -103,6 +105,11 @@ func registerRoutes(app *fiber.App, h *handlers.Handler, jwt *auth.Manager) {
 	// Plans
 	app.Get("/api/plans", h.Plans)
 	app.Post("/api/plans/upgrade", requireAuth, h.UpgradePlan)
+
+	// Payment (Duitku POP)
+	app.Post("/api/payment/create-invoice", requireAuth, h.CreatePaymentInvoice)
+	app.Post("/api/payment/duitku/callback", h.DuitkuCallback)
+	app.Get("/api/payment/status/:orderId", requireAuth, h.GetPaymentStatus)
 
 	// Projects
 	app.Get("/api/projects", requireAuth, h.ListProjects)

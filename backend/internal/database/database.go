@@ -62,6 +62,7 @@ func Migrate(db *gorm.DB) error {
 		&models.Project{},
 		&models.Share{},
 		&models.UsageLog{},
+		&models.Transaction{},
 	); err != nil {
 		return fmt.Errorf("auto migrate: %w", err)
 	}

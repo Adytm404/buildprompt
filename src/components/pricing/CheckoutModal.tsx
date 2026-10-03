@@ -3,6 +3,7 @@ import { Check, CreditCard, QrCode, ShieldCheck, X } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/ToastProvider';
+import { api } from '@/lib/api';
 import type { PricingTier } from './PricingCard';
 
 interface CheckoutModalProps {
@@ -11,7 +12,7 @@ interface CheckoutModalProps {
 }
 
 export function CheckoutModal({ tier, onClose }: CheckoutModalProps) {
-  const { upgradePlan } = useAuth();
+  const { refresh } = useAuth();
   const { toast } = useToast();
   const [paymentMethod, setPaymentMethod] = useState<'qris' | 'va' | 'card'>('qris');
   const [processing, setProcessing] = useState(false);
@@ -21,20 +22,76 @@ export function CheckoutModal({ tier, onClose }: CheckoutModalProps) {
   const handlePay = async () => {
     setProcessing(true);
     try {
-      await upgradePlan(tier.id);
-      toast({
-        title: 'Pembayaran Berhasil!',
-        description: `Selamat, akun Anda telah di-upgrade ke paket ${tier.name}.`,
-        variant: 'success',
-      });
-      onClose();
+      // Direct payment code mapping for Duitku POP
+      const methodCode = paymentMethod === 'card' ? 'VC' : paymentMethod === 'qris' ? 'SP' : '';
+
+      const invoice = await api.createPaymentInvoice(tier.id, methodCode);
+
+      if (typeof window !== 'undefined' && window.checkout?.process) {
+        window.checkout.process(invoice.reference, {
+          defaultLanguage: 'id',
+          successEvent: async () => {
+            toast({
+              title: 'Pembayaran Diterima!',
+              description: `Selamat, akun Anda telah aktif pada paket ${tier.name}.`,
+              variant: 'success',
+            });
+            await refresh();
+            onClose();
+          },
+          pendingEvent: () => {
+            toast({
+              title: 'Menunggu Pembayaran',
+              description: 'Silakan selesaikan pembayaran sesuai instruksi pada layar Duitku.',
+              variant: 'default',
+            });
+          },
+          errorEvent: () => {
+            toast({
+              title: 'Pembayaran Gagal',
+              description: 'Transaksi tidak dapat diselesaikan atau dibatalkan.',
+              variant: 'error',
+            });
+            setProcessing(false);
+          },
+          closeEvent: async () => {
+            // Check status on popup close in case payment completed right before close
+            try {
+              const check = await api.getPaymentStatus(invoice.orderId);
+              if (check.status === 'success') {
+                toast({
+                  title: 'Pembayaran Sukses!',
+                  description: `Akun Anda telah diaktifkan ke paket ${tier.name}.`,
+                  variant: 'success',
+                });
+                await refresh();
+                onClose();
+                return;
+              }
+            } catch {
+              // ignore check failure on close
+            }
+            setProcessing(false);
+          },
+        });
+      } else if (invoice.paymentUrl) {
+        // Fallback if Duitku JS is not loaded: open payment page in new window
+        window.open(invoice.paymentUrl, '_blank');
+        toast({
+          title: 'Membuka Halaman Pembayaran',
+          description: 'Selesaikan pembayaran di tab baru yang telah dibuka.',
+          variant: 'default',
+        });
+        setProcessing(false);
+      } else {
+        throw new Error('Referensi pembayaran Duitku tidak ditemukan.');
+      }
     } catch (error) {
       toast({
         title: 'Gagal memproses pembayaran',
         description: error instanceof Error ? error.message : 'Terjadi kesalahan.',
         variant: 'error',
       });
-    } finally {
       setProcessing(false);
     }
   };
@@ -173,7 +230,7 @@ export function CheckoutModal({ tier, onClose }: CheckoutModalProps) {
           <div className="mt-6 flex items-center justify-between gap-3 pt-2">
             <div className="flex items-center gap-1.5 text-[11px] text-white/40">
               <ShieldCheck size={14} className="text-purple-400" />
-              <span>Simulasi Aman • Langsung Aktif</span>
+              <span>Duitku Payment • Sandbox</span>
             </div>
 
             <button
@@ -183,11 +240,11 @@ export function CheckoutModal({ tier, onClose }: CheckoutModalProps) {
               className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-purple-600 to-[#7C3AED] hover:from-purple-500 hover:to-[#8B5CF6] px-6 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-[0_4px_24px_rgba(109,40,217,0.5)] transition active:scale-95 disabled:opacity-50"
             >
               {processing ? (
-                <span>Memproses...</span>
+                <span>Menyiapkan Duitku...</span>
               ) : (
                 <>
                   <Check size={14} strokeWidth={2.4} />
-                  <span>Bayar Sekarang (Simulasi)</span>
+                  <span>Bayar via Duitku POP</span>
                 </>
               )}
             </button>

@@ -36,6 +36,13 @@ type Config struct {
 
 	FreeDailyLimit   int
 	FreeMonthlyLimit int
+
+	DuitkuMerchantCode string
+	DuitkuAPIKey       string
+	DuitkuBaseURL      string
+	DuitkuCallbackURL  string
+	DuitkuReturnURL    string
+	DuitkuExpiryMin    int
 }
 
 // Load reads configuration from .env (if present) and the process environment.
@@ -59,6 +66,13 @@ func Load() *Config {
 		CORSOrigins:      getEnv("CORS_ORIGINS", "http://localhost:5173,http://localhost:5199,http://127.0.0.1:5173"),
 		FreeDailyLimit:   getEnvInt("FREE_DAILY_LIMIT", 1),
 		FreeMonthlyLimit: getEnvInt("FREE_MONTHLY_LIMIT", 5),
+
+		DuitkuMerchantCode: getEnv("DUITKU_MERCHANT_CODE", "DS25145"),
+		DuitkuAPIKey:       getEnv("DUITKU_API_KEY", "6e2075af7cb84175178e9bdd6cdb8a50"),
+		DuitkuBaseURL:      strings.TrimRight(getEnv("DUITKU_BASE_URL", "https://api-sandbox.duitku.com/api/merchant"), "/"),
+		DuitkuCallbackURL:  getEnv("DUITKU_CALLBACK_URL", "http://localhost:8080/api/payment/duitku/callback"),
+		DuitkuReturnURL:    getEnv("DUITKU_RETURN_URL", "http://localhost:5199/dashboard/pricing"),
+		DuitkuExpiryMin:    getEnvInt("DUITKU_EXPIRY_MINUTES", 60),
 	}
 
 	ttlHours := getEnvInt("JWT_TTL_HOURS", 24*7)

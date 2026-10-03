@@ -10,3 +10,24 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+interface DuitkuCheckoutResult {
+  resultCode: string;
+  merchantOrderId: string;
+  reference: string;
+}
+
+interface DuitkuCheckoutOptions {
+  defaultLanguage?: 'id' | 'en';
+  currency?: string;
+  successEvent?: (result: DuitkuCheckoutResult) => void;
+  pendingEvent?: (result: DuitkuCheckoutResult) => void;
+  errorEvent?: (result: DuitkuCheckoutResult) => void;
+  closeEvent?: (result: DuitkuCheckoutResult) => void;
+}
+
+interface Window {
+  checkout?: {
+    process: (reference: string, options: DuitkuCheckoutOptions) => void;
+  };
+}

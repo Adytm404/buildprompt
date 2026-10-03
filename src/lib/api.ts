@@ -225,6 +225,24 @@ export interface InterviewResponse {
   source: 'ai' | 'local';
 }
 
+export interface PaymentInvoiceResponse {
+  orderId: string;
+  reference: string;
+  paymentUrl: string;
+  amount: number;
+  plan: SubscriptionPlan;
+}
+
+export interface PaymentStatusResponse {
+  orderId: string;
+  status: 'pending' | 'success' | 'failed' | 'expired';
+  plan: SubscriptionPlan;
+  amount: number;
+  reference: string;
+  paidAt?: string;
+  createdAt: string;
+}
+
 export const api = {
   register: (payload: { name: string; email: string; password: string }) =>
     request<AuthSession>('/auth/register', { method: 'POST', body: payload, auth: false }),
@@ -236,6 +254,15 @@ export const api = {
 
   upgradePlan: (plan: SubscriptionPlan) =>
     request<{ user: ApiUser }>('/plans/upgrade', { method: 'POST', body: { plan } }),
+
+  createPaymentInvoice: (plan: SubscriptionPlan, paymentMethod?: string) =>
+    request<PaymentInvoiceResponse>('/payment/create-invoice', {
+      method: 'POST',
+      body: { plan, paymentMethod },
+    }),
+
+  getPaymentStatus: (orderId: string) =>
+    request<PaymentStatusResponse>(`/payment/status/${orderId}`),
 
   listProjects: (signal?: AbortSignal) => request<{ projects: Project[] }>('/projects', { signal }),
 
